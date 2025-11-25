@@ -1,0 +1,1971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cashier Portal</title>
+
+<style>
+     body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f9f7;
+    color: #3a3a3a;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  header {
+    background: #4a6b4a;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 10;
+  }
+
+  .header-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .logo {
+    height: 80px;
+    width: auto;
+    object-fit: contain;
+  }
+
+  #sidebar {
+    background: #6b4a3a;
+    width: 220px;
+    padding-top: 100px;
+    box-sizing: border-box;
+    color: white;
+    display: none;
+    flex-direction: column;
+    position: fixed;
+    top: 60px;
+    bottom: 0;
+    overflow-y: auto;
+  }
+
+  #sidebar button {
+    background: transparent;
+    border: none;
+    color: white;
+    padding: 1rem 1.5rem;
+    text-align: left;
+    cursor: pointer;
+    font-size: 1rem;
+    border-left: 5px solid transparent;
+    transition: background 0.3s, border-left 0.3s;
+  }
+
+  #sidebar button:hover,
+  #sidebar button.active {
+    background: #5a3a2a;
+    border-left: 5px solid #3a6b9a;
+  }
+
+  main {
+    flex-grow: 1;
+    padding: 80px 20px 20px 240px;
+    overflow-y: auto;
+    display: none;
+    margin-top: 30px;
+  }
+
+  @media (max-width: 768px) {
+    main {
+      padding: 80px 20px 20px 20px;
+      margin-top: 0;
+    }
+  }
+
+  h2 {
+    color: #4a6b4a;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+  }
+
+  th, td {
+    border: 1px solid #ccc;
+    padding: 0.6rem;
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  th {
+    background: #3a6b9a;
+    color: white;
+  }
+
+  button.action-btn {
+    background: #4a6b4a;
+    color: white;
+    border: none;
+    padding: 0.3rem 0.6rem;
+    margin-right: 0.3rem;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+  }
+
+  button.action-btn.reject-btn { background: #c0392b; }
+  button.action-btn:hover { background: #3a5a3a; }
+  button.action-btn.reject-btn:hover { background: #a0291b; }
+
+  .status-pending { background-color: #fff3cd; }
+  .status-forwarded { background-color: #cce7ff; }
+  .status-accepted { background-color: #d4edda; }
+  .status-dispatched { background-color: #d1f2eb; }
+  .status-active { background-color: #d1f2eb; }
+  .status-rejected { background-color: #f8d7da; }
+  .status-returned { background-color: #ffeaa7; }
+  .status-closed { background-color: #e2e3e5; }
+
+  #authSection {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+    height: calc(100vh - 60px);
+  }
+
+  .auth-box {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 320px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+
+  .password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .password-wrapper input {
+    flex: 1;
+    padding: 0.5rem;
+    padding-right: 2rem;
+    box-sizing: border-box;
+  }
+
+  .password-wrapper .toggle-password {
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #555;
+  }
+
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+  }
+
+  .modal-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 700px;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 26px;
+    cursor: pointer;
+  }
+
+  .close-btn:hover { color: #000; }
+
+  .balance-highlight {
+    background: #e8f5e9;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 5px solid #2e7d32;
+  }
+
+  .settings-panel {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 600px;
+  }
+
+  .settings-panel label {
+    display: block;
+    margin: 15px 0 5px 0;
+    font-weight: bold;
+  }
+
+  .settings-panel input,
+  .settings-panel select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .payment-input-group {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #dee2e6;
+  }
+
+  .payment-input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 10px;
+  }
+
+  .input-helper {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 5px;
+    font-style: italic;
+  }
+
+  .calculation-preview {
+    background: #fff3cd;
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 15px;
+    border-left: 4px solid #ffc107;
+  }
+
+  .calculation-preview h4 {
+    margin: 0 0 10px 0;
+    color: #856404;
+  }
+
+  .calc-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px dashed #dee2e6;
+  }
+
+  .calc-row:last-child {
+    border-bottom: none;
+    font-weight: bold;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 2px solid #856404;
+  }
+
+  .notification {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: #4a6b4a;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+    max-width: 300px;
+    transform: translateX(400px);
+    transition: transform 0.3s ease-out;
+  }
+
+  .notification.show {
+    transform: translateX(0);
+  }
+
+  .notification.error {
+    background: #c0392b;
+  }
+
+  .notification.warning {
+    background: #f39c12;
+  }
+
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-container">
+    <img src="logo.jpg" alt="Company Logo" class="logo">
+    <h1>Cashier Portal </h1>
+  </div>
+</header>
+
+<div id="sidebar">
+  <button class="active" data-filter="all">All Loans</button>
+  <button data-filter="pending">Pending Loans</button>
+  <button data-filter="forwarded">Forwarded to Accountant</button>
+  <button data-filter="accepted">Accepted Loans</button>
+  <button data-filter="dispatched">Dispatched Loans</button>
+  <button data-filter="active">Active Loans</button>
+  <button data-filter="rejected">Rejected Loans</button>
+  <button data-filter="returned">Returned by Accountant</button>
+  <button data-filter="closed">Closed Loans</button>
+  <button data-filter="reconciliation">💰 Reconciliation</button>
+</div>
+
+<div id="authSection">
+  <div class="auth-box">
+    <h2>CASHIER LOGIN</h2>
+    <input type="text" id="loginpfNumber" placeholder="PF Number (9-11 digits)" style="width:100%; margin-bottom:1rem; padding:0.5rem;">
+    <div class="password-wrapper">
+      <input type="password" id="loginPassword" placeholder="Password">
+      <span class="toggle-password" data-target="loginPassword">👁️</span>
+    </div>
+    <button id="loginBtn" style="width:100%; padding:0.7rem; background:#4a6b4a; color:white; border:none; border-radius:4px; cursor:pointer;">Login</button>
+  </div>
+</div>
+
+<main id="portalSection">
+  <h2 id="sectionTitle">All Loans</h2>
+  <div id="mainContent">
+    <table id="loansTable">
+      <thead>
+        <tr>
+          <th>Full Name</th>
+          <th>ID Number</th>
+          <th>PF Number</th>
+          <th>Loan Type</th>
+          <th>Details</th>
+          <th>Loan Amount</th>
+          <th>Current Balance</th>
+          <th>Amortization</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div id="settingsContent" style="display:none;">
+    <div class="settings-panel">
+      <h3>Loan Configuration Settings</h3>
+      
+      <label>Annual Interest Rate (%):</label>
+      <input type="number" id="interestRateInput" step="0.1" value="3.0">
+      
+      <div style="margin-top: 20px;">
+        <button onclick="saveSettings()" style="background:#4a6b4a; color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; margin-right:10px;">Save Settings</button>
+        <button onclick="resetSettings()" style="background:#c0392b; color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer;">Reset to Defaults</button>
+      </div>
+      
+      <div style="margin-top: 30px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
+        <h4 style="margin-top: 0;">Current Active Settings:</h4>
+        <p id="currentSettings"></p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="detailsModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" id="closeDetailsModal">&times;</span>
+    <h2>Loan Details</h2>
+    <div id="loanDetailsContent"></div>
+  </div>
+</div>
+
+<div id="feedbackModal" class="modal">
+  <div class="modal-content" style="max-width:400px;">
+    <span class="close-btn" id="cancelFeedback">&times;</span>
+    <h2 id="feedbackTitle">Provide Feedback</h2>
+    <textarea id="feedbackTextarea" style="width:100%; min-height:100px; margin-top:10px; padding:10px;"></textarea>
+    <div style="text-align:right; margin-top:10px;">
+      <button id="submitFeedback" style="background:#4a6b4a; color:white; border:none; padding:8px 15px; border-radius:4px;">Submit</button>
+      <button id="cancelFeedbackButton" style="background:#ccc; border:none; padding:8px 15px; border-radius:4px;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="amortModal" class="modal">
+  <div class="modal-content" style="max-width:1000px;">
+    <span class="close-btn" id="closeAmortModal">&times;</span>
+    <h2>Payment Schedule & Amortization</h2>
+    <div id="amortInfo" style="background:#e8f5e9; padding:15px; margin-bottom:15px; border-radius:8px;"></div>
+    <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Due Date</th>
+          <th>Expected Payment</th>
+          <th>Actual Payment</th>
+          <th>Expected Interest</th>
+          <th>Actual Interest</th>
+          <th>Principal</th>
+          <th>Balance</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="amortTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="recordPaymentModal" class="modal">
+  <div class="modal-content" style="max-width:600px;">
+    <span class="close-btn" id="closePaymentModal">&times;</span>
+    <h2>💳 Record Payment</h2>
+    <div id="paymentLoaneeInfo" style="background:#f0f0f0; padding:10px; margin-bottom:15px; border-radius:5px;"></div>
+    
+    <div class="payment-input-group">
+      <h4 style="margin-top:0; color:#2c5f2d;">Payment Breakdown</h4>
+      
+      <div class="payment-input-row">
+        <div>
+          <label style="display:block; margin-bottom:5px; font-weight:bold;">Principal Amount (KES) <span style="color:red;">*</span></label>
+          <input type="number" id="principalAmount" placeholder="Enter principal payment" 
+                 style="width:100%; padding:0.5rem; box-sizing:border-box;" min="0" step="0.01">
+          <div class="input-helper">Amount going towards loan principal</div>
+        </div>
+        
+        <div>
+          <label style="display:block; margin-bottom:5px; font-weight:bold;">Interest Amount (KES) <span style="color:red;">*</span></label>
+          <input type="number" id="interestAmount" placeholder="Enter interest amount" 
+                 style="width:100%; padding:0.5rem; box-sizing:border-box;" min="0" step="0.01">
+          <div class="input-helper">Interest portion of this payment</div>
+        </div>
+      </div>
+      
+      <!-- READ-ONLY TOTAL PAYMENT FIELD -->
+      <div style="margin-top: 15px;">
+        <label style="display:block; margin-bottom:5px; font-weight:bold; color:#2e7d32;">Total Payment Amount (KES)</label>
+        <input type="number" id="totalPaymentAmount" placeholder="Auto-calculated" 
+               style="width:100%; padding:0.5rem; box-sizing:border-box; background:#e8f5e9; font-weight:bold; font-size:1.1rem;" 
+               readonly>
+        <div class="input-helper" style="color:#2e7d32;">Automatically calculated: Principal + Interest</div>
+      </div>
+      
+      <div class="calculation-preview" id="paymentCalculationPreview" style="display:none;">
+        <h4>💡 Payment Summary</h4>
+        <div class="calc-row">
+          <span>Principal Paid:</span>
+          <span id="previewPrincipal" style="color:#2e7d32;">KES 0</span>
+        </div>
+        <div class="calc-row">
+          <span>Interest Charged:</span>
+          <span id="previewInterest" style="color:#d84315;">KES 0</span>
+        </div>
+        <div class="calc-row">
+          <span>Total Payment:</span>
+          <span id="previewTotalPayment" style="font-weight:bold;">KES 0</span>
+        </div>
+        <div class="calc-row">
+          <span>New Balance:</span>
+          <span id="previewNewBalance" style="color:#c62828;">KES 0</span>
+        </div>
+      </div>
+    </div>
+    
+    <label style="display:block; margin-bottom:5px; font-weight:bold;">Payment Date <span style="color:red;">*</span></label>
+    <input type="date" id="paymentDate" 
+           style="width:100%; padding:0.5rem; margin-bottom:15px; box-sizing:border-box;">
+    
+    <label style="display:block; margin-bottom:5px; font-weight:bold;">Payment Source <span style="color:red;">*</span></label>
+    <select id="paymentSource" style="width:100%; padding:0.5rem; margin-bottom:15px; box-sizing:border-box;">
+      <option value="">Select payment source</option>
+      <option value="Salary Deduction">Salary Deduction</option>
+      <option value="Bank Transfer">Bank Transfer</option>
+      <option value="Cash">Cash Deposit</option>
+    </select>
+    
+    <!-- NEW: TRANSACTION/REFERENCE ID FIELD -->
+    <label style="display:block; margin-bottom:5px; font-weight:bold;">Transaction/Reference ID<span style="color:red;">*</span> </label>
+    <input type="text" id="transactionReference" placeholder="e.g., TXN123456, REF-2024-001" 
+           style="width:100%; padding:0.5rem; margin-bottom:15px; box-sizing:border-box;" maxlength="100">
+    <div class="input-helper" style="margin-top:-10px; margin-bottom:15px;">
+      Bank transaction ID, receipt number, or any reference for this payment
+    </div>
+    
+    <label style="display:block; margin-bottom:5px; font-weight:bold;">Payment Notes (Optional):</label>
+    <textarea id="paymentNotes" placeholder="Add any notes about this payment..." 
+              style="width:100%; min-height:60px; padding:10px; margin-bottom:15px; box-sizing:border-box;"></textarea>
+    
+    <div style="text-align:right;">
+      <button id="submitPayment" style="background:#4a6b4a; color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; margin-right:10px;">Record Payment</button>
+      <button id="cancelPayment" style="background:#ccc; border:none; padding:10px 20px; border-radius:4px; cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Notification element -->
+<div id="notification" class="notification"></div>
+
+<script>
+    // ==========================================
+// SECURITY & AUTHENTICATION
+// ==========================================
+
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+// ==========================================
+// CONFIGURATION & SETTINGS
+// ==========================================
+
+function getSettings() {
+  const defaults = {
+    interestRate: 3.0,
+    paymentFrequency: 'monthly'
+  };
+  
+  const stored = localStorage.getItem('loanSettings');
+  return stored ? JSON.parse(stored) : defaults;
+}
+
+function saveSettings() {
+  const settings = {
+    interestRate: parseFloat(document.getElementById('interestRateInput').value),
+    paymentFrequency: 'monthly'
+  };
+  
+  localStorage.setItem('loanSettings', JSON.stringify(settings));
+  localStorage.setItem('amortizationRate', settings.interestRate.toString());
+  
+  showNotification('Settings saved successfully!', 'success');
+  displayCurrentSettings();
+}
+
+function resetSettings() {
+  if (confirm('Are you sure you want to reset all settings to defaults?')) {
+    localStorage.removeItem('loanSettings');
+    loadSettings();
+    showNotification('Settings reset to defaults!', 'success');
+  }
+}
+
+function loadSettings() {
+  const settings = getSettings();
+  document.getElementById('interestRateInput').value = settings.interestRate;
+  
+  displayCurrentSettings();
+}
+
+function displayCurrentSettings() {
+  const settings = getSettings();
+  const elem = document.getElementById('currentSettings');
+  if (elem) {
+    elem.innerHTML = `
+      <strong>Interest Rate:</strong> ${settings.interestRate}% per year<br>
+      <strong>Payment Frequency:</strong> Monthly (1 payment per month)
+    `;
+  }
+}
+
+// ==========================================
+// NOTIFICATION SYSTEM
+// ==========================================
+
+function showNotification(message, type = 'success') {
+  const notification = document.getElementById('notification');
+  notification.textContent = message;
+  notification.className = 'notification show ' + type;
+  
+  setTimeout(() => {
+    notification.classList.remove('show');
+  }, 3000);
+}
+
+// ==========================================
+// INTEREST CALCULATION ENGINE
+// ==========================================
+
+function calculateMonthlyInterest(principal, annualRate, months) {
+  const monthlyRate = annualRate / 100 / 12;
+  return principal * monthlyRate * months;
+}
+
+function recalculateLoanBalance(loan) {
+  const settings = getSettings();
+  const rate = settings.interestRate;
+  const payments = loan.payments || [];
+  
+  let balance = loan.loanAmount;
+  let totalInterestPaid = 0;
+  let totalPrincipalPaid = 0;
+  
+  const startDate = new Date(loan.dispatchDate || loan.applicationDate);
+  let lastPaymentDate = startDate;
+  
+  payments.forEach(payment => {
+    const paymentDate = new Date(payment.date);
+    const monthsSinceLastPayment = Math.max(1, Math.round((paymentDate - lastPaymentDate) / (1000 * 60 * 60 * 24 * 30)));
+    
+    // Use actual interest if provided by cashier, otherwise calculate
+    const interestPortion = payment.actualInterest !== undefined ? payment.actualInterest : Math.min(calculateMonthlyInterest(balance, rate, monthsSinceLastPayment), payment.amount);
+    const principalPortion = payment.amount - interestPortion;
+    
+    balance = balance - principalPortion;
+    
+    payment.interestPortion = interestPortion;
+    payment.principalPortion = principalPortion;
+    payment.balanceAfter = Math.max(0, balance);
+    payment.monthsFromLastPayment = monthsSinceLastPayment;
+    
+    totalInterestPaid += interestPortion;
+    totalPrincipalPaid += principalPortion;
+    lastPaymentDate = paymentDate;
+  });
+  
+  const today = new Date();
+  const monthsSinceLastPayment = Math.max(1, Math.round((today - lastPaymentDate) / (1000 * 60 * 60 * 24 * 30)));
+  const currentAccruedInterest = balance > 0 ? calculateMonthlyInterest(balance, rate, monthsSinceLastPayment) : 0;
+  
+  return {
+    currentPrincipal: Math.max(0, balance),
+    accruedInterest: currentAccruedInterest,
+    totalBalance: Math.max(0, balance + currentAccruedInterest),
+    lastPaymentDate: lastPaymentDate,
+    monthsSinceLastPayment: monthsSinceLastPayment,
+    totalInterestPaid: totalInterestPaid,
+    totalPrincipalPaid: totalPrincipalPaid,
+    totalPaid: totalInterestPaid + totalPrincipalPaid
+  };
+}
+
+// ==========================================
+// PAYMENT SCHEDULE GENERATION
+// ==========================================
+
+function generatePaymentSchedule(loan) {
+  const settings = getSettings();
+  const rate = settings.interestRate;
+  
+  // Force monthly frequency for all loans
+  loan.paymentFrequency = 'monthly';
+  
+  const startDate = new Date(loan.dispatchDate || loan.applicationDate);
+  const principal = loan.loanAmount;
+  const years = loan.paymentDuration;
+  
+  let schedule = [];
+  let paymentsPerYear = 12;
+  
+  const totalPayments = years * paymentsPerYear;
+  const periodicRate = (rate / 100) / paymentsPerYear;
+  
+  const periodicPayment = principal * (periodicRate * Math.pow(1 + periodicRate, totalPayments)) / 
+                          (Math.pow(1 + periodicRate, totalPayments) - 1);
+  
+  let balance = principal;
+  
+  for (let i = 0; i < totalPayments; i++) {
+    const dueDate = new Date(startDate);
+    dueDate.setMonth(startDate.getMonth() + i);
+    
+    const interestPayment = balance * periodicRate;
+    const principalPayment = periodicPayment - interestPayment;
+    balance -= principalPayment;
+    
+    schedule.push({
+      paymentNumber: i + 1,
+      dueDate: dueDate.toISOString(),
+      expectedAmount: periodicPayment,
+      expectedPrincipal: principalPayment,
+      expectedInterest: interestPayment,
+      expectedBalance: Math.max(0, balance),
+      status: 'pending',
+      actualAmount: 0,
+      actualInterest: 0,
+      actualDate: null,
+      variance: 0
+    });
+  }
+  
+  return schedule;
+}
+
+function updatePaymentScheduleWithActuals(loan) {
+  // Always regenerate the schedule to ensure monthly payments only
+  loan.paymentSchedule = generatePaymentSchedule(loan);
+  
+  const payments = loan.payments || [];
+  
+  payments.forEach(payment => {
+    const paymentDate = new Date(payment.date);
+    const paymentMonth = paymentDate.getMonth();
+    const paymentYear = paymentDate.getFullYear();
+    
+    // Find the schedule entry for the same month and year
+    const scheduleIndex = loan.paymentSchedule.findIndex(scheduled => {
+      const scheduledDate = new Date(scheduled.dueDate);
+      return scheduledDate.getMonth() === paymentMonth && 
+             scheduledDate.getFullYear() === paymentYear;
+    });
+    
+    if (scheduleIndex >= 0) {
+      const scheduled = loan.paymentSchedule[scheduleIndex];
+      scheduled.actualAmount = payment.amount;
+      scheduled.actualInterest = payment.actualInterest || payment.interestPortion || 0;
+      scheduled.actualDate = payment.date;
+      scheduled.variance = scheduled.actualAmount - scheduled.expectedAmount;
+      
+      if (scheduled.actualAmount >= scheduled.expectedAmount) {
+        scheduled.status = 'paid';
+      } else {
+        scheduled.status = 'partial';
+      }
+    }
+  });
+  
+  const today = new Date();
+  loan.paymentSchedule.forEach(scheduled => {
+    const dueDate = new Date(scheduled.dueDate);
+    
+    if (scheduled.status === 'pending' && today > dueDate) {
+      scheduled.status = 'overdue';
+    }
+  });
+  
+  return loan.paymentSchedule;
+}
+
+// ==========================================
+// AMORTIZATION SCHEDULE MODAL
+// ==========================================
+
+function showAmortization(loan) {
+  const amortTableBody = document.getElementById('amortTableBody');
+  amortTableBody.innerHTML = '';
+  
+  const balanceInfo = recalculateLoanBalance(loan);
+  const schedule = updatePaymentScheduleWithActuals(loan);
+  
+  const amortInfo = document.getElementById('amortInfo');
+  amortInfo.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <h3 style="margin:0; color:#2e7d32;">Payment Schedule Summary</h3>
+      <button onclick="exportAmortization()" class="action-btn" style="background:#2196F3;">⬇️ Export Schedule</button>
+    </div>
+    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:15px;margin-top:15px;">
+      <div>
+        <strong>Original Loan:</strong> KES ${new Intl.NumberFormat().format(loan.loanAmount)}<br>
+        <strong>Current Balance:</strong> <span style="color:#c62828;">KES ${new Intl.NumberFormat().format(Math.round(balanceInfo.totalBalance))}</span>
+      </div>
+      <div>
+        <strong>Total Paid:</strong> KES ${new Intl.NumberFormat().format(Math.round(balanceInfo.totalPaid))}<br>
+        <strong>Interest Rate:</strong> ${getSettings().interestRate}% per year
+      </div>
+      <div>
+        <strong>Payment Frequency:</strong> Monthly<br>
+        <strong>Months Since Last Payment:</strong> ${balanceInfo.monthsSinceLastPayment}
+      </div>
+    </div>
+  `;
+  
+  if (schedule.length === 0) {
+    amortTableBody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px;">No payment schedule generated yet. Loan must be dispatched first.</td></tr>';
+    document.getElementById('amortModal').style.display = 'block';
+    return;
+  }
+  
+  schedule.forEach((payment) => {
+    const statusColors = {
+      'paid': '#d4edda',
+      'partial': '#fff3cd',
+      'pending': '#ffffff',
+      'overdue': '#f8d7da'
+    };
+    
+    const row = `
+      <tr style="background:${statusColors[payment.status] || '#fff'};">
+        <td>${payment.paymentNumber}</td>
+        <td>${new Date(payment.dueDate).toLocaleDateString()}</td>
+        <td>KES ${new Intl.NumberFormat().format(Math.round(payment.expectedAmount))}</td>
+        <td>${payment.actualAmount > 0 ? 'KES ' + new Intl.NumberFormat().format(Math.round(payment.actualAmount)) : '-'}</td>
+        <td style="color:#d84315;">KES ${new Intl.NumberFormat().format(Math.round(payment.expectedInterest))}</td>
+        <td style="color:#d84315; font-weight:bold;">${payment.actualInterest > 0 ? 'KES ' + new Intl.NumberFormat().format(Math.round(payment.actualInterest)) : '-'}</td>
+        <td>KES ${new Intl.NumberFormat().format(Math.round(payment.expectedPrincipal))}</td>
+        <td>KES ${new Intl.NumberFormat().format(Math.round(payment.expectedBalance))}</td>
+        <td><strong>${payment.status.toUpperCase()}</strong>${payment.variance !== 0 && payment.actualAmount > 0 ? 
+            `<br><small style="color:${payment.variance > 0 ? 'green' : 'red'};">${payment.variance > 0 ? '+' : ''}KES ${Math.round(payment.variance)}</small>` : ''}</td>
+      </tr>
+    `;
+    amortTableBody.innerHTML += row;
+  });
+  
+  document.getElementById('amortModal').style.display = 'block';
+}
+
+document.getElementById('closeAmortModal').onclick = () => { 
+  document.getElementById('amortModal').style.display = 'none'; 
+};
+
+// ==========================================
+// RECORD PAYMENT MODAL
+// ==========================================
+
+let currentPaymentLoan = null;
+
+function showRecordPaymentModal(loan) {
+  currentPaymentLoan = loan;
+  
+  console.log('Payment modal opened for:', loan.fullName);
+  
+  const balanceInfo = recalculateLoanBalance(loan);
+  
+  document.getElementById('paymentLoaneeInfo').innerHTML = `
+    <p style="margin:5px 0;"><strong>Loanee:</strong> ${loan.fullName}</p>
+    <p style="margin:5px 0;"><strong>PF Number:</strong> ${loan.pfNumber}</p>
+    <p style="margin:5px 0;"><strong>Original Loan Amount:</strong> KES ${new Intl.NumberFormat().format(loan.loanAmount)}</p>
+    <p style="margin:5px 0;"><strong>Current Principal:</strong> KES ${new Intl.NumberFormat().format(Math.round(balanceInfo.currentPrincipal))}</p>
+    <p style="margin:5px 0;"><strong>Accrued Interest:</strong> <span style="color:#d84315;">KES ${new Intl.NumberFormat().format(Math.round(balanceInfo.accruedInterest))}</span></p>
+    <p style="margin:5px 0;"><strong>Total Balance Due:</strong> <span style="color:#c62828; font-weight:bold; font-size:1.1em;">KES ${new Intl.NumberFormat().format(Math.round(balanceInfo.totalBalance))}</span></p>
+    <p style="margin:5px 0; font-size:0.9em; color:#666;"><em>Last payment: ${balanceInfo.monthsSinceLastPayment} months ago</em></p>
+  `;
+  
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('paymentDate').value = today;
+  
+  // Clear and reset all form fields
+  document.getElementById('principalAmount').value = '';
+  document.getElementById('interestAmount').value = '';
+  document.getElementById('totalPaymentAmount').value = '';
+  document.getElementById('paymentSource').value = '';
+  document.getElementById('transactionReference').value = '';
+  document.getElementById('paymentNotes').value = '';
+  document.getElementById('paymentCalculationPreview').style.display = 'none';
+  
+  document.getElementById('recordPaymentModal').style.display = 'block';
+}
+
+// Payment calculation preview
+document.getElementById('principalAmount').addEventListener('input', updatePaymentPreview);
+document.getElementById('interestAmount').addEventListener('input', updatePaymentPreview);
+
+function updatePaymentPreview() {
+  const principal = parseFloat(document.getElementById('principalAmount').value) || 0;
+  const interest = parseFloat(document.getElementById('interestAmount').value) || 0;
+  const totalAmount = principal + interest;
+  
+  // Update the read-only total field
+  document.getElementById('totalPaymentAmount').value = totalAmount.toFixed(2);
+  
+  if (totalAmount > 0 && currentPaymentLoan) {
+    const balanceInfo = recalculateLoanBalance(currentPaymentLoan);
+    const newBalance = Math.max(0, balanceInfo.currentPrincipal - principal);
+    
+    document.getElementById('previewPrincipal').textContent = 'KES ' + new Intl.NumberFormat().format(principal);
+    document.getElementById('previewInterest').textContent = 'KES ' + new Intl.NumberFormat().format(interest);
+    document.getElementById('previewTotalPayment').textContent = 'KES ' + new Intl.NumberFormat().format(totalAmount);
+    document.getElementById('previewNewBalance').textContent = 'KES ' + new Intl.NumberFormat().format(newBalance);
+    
+    document.getElementById('paymentCalculationPreview').style.display = 'block';
+  } else {
+    document.getElementById('paymentCalculationPreview').style.display = 'none';
+  }
+}
+
+document.getElementById('submitPayment').onclick = () => {
+  const principal = parseFloat(document.getElementById('principalAmount').value);
+  const interest = parseFloat(document.getElementById('interestAmount').value);
+  const totalAmount = principal + interest;
+  const pDate = document.getElementById('paymentDate').value;
+  const source = document.getElementById('paymentSource').value;
+  const transactionRef = document.getElementById('transactionReference').value.trim();
+  const notes = document.getElementById('paymentNotes').value.trim();
+  
+  // Validation
+  if (!principal || principal < 0) {
+    showNotification('Please enter a valid principal amount (must be 0 or greater).', 'error');
+    return;
+  }
+  
+  if (interest === undefined || interest === null || interest < 0) {
+    showNotification('Please enter a valid interest amount (can be 0).', 'error');
+    return;
+  }
+  
+  if (totalAmount <= 0) {
+    showNotification('Total payment must be greater than zero.', 'error');
+    return;
+  }
+  
+  if (!pDate) {
+    showNotification('Please select a payment date.', 'error');
+    return;
+  }
+  
+  if (!source) {
+    showNotification('Please select a payment source.', 'error');
+    return;
+  }
+  
+  const balanceInfo = recalculateLoanBalance(currentPaymentLoan);
+  
+  if (totalAmount > balanceInfo.totalBalance * 1.1) {
+    const confirm = window.confirm(`Payment amount (KES ${new Intl.NumberFormat().format(totalAmount)}) significantly exceeds balance due (KES ${new Intl.NumberFormat().format(Math.round(balanceInfo.totalBalance))}). Do you want to continue?`);
+    if (!confirm) return;
+  }
+  
+  const paymentDateObj = new Date(pDate);
+  paymentDateObj.setHours(12, 0, 0, 0);
+  
+  const payment = {
+    amount: totalAmount,
+    principalAmount: principal,
+    interestAmount: interest,
+    actualInterest: interest,
+    principalPortion: principal,
+    interestPortion: interest,
+    source: source,
+    transactionReference: transactionRef || null,
+    notes: notes,
+    date: paymentDateObj.toISOString(),
+    recordedBy: localStorage.getItem('cashierLoggedIn'),
+    recordedAt: new Date().toISOString()
+  };
+  
+  let loans = getAllLoans();
+  const loanIndex = loans.findIndex(l => generateLoanId(l) === generateLoanId(currentPaymentLoan));
+  
+  if (loanIndex === -1) {
+    showNotification('Loan not found!', 'error');
+    return;
+  }
+  
+  if (!loans[loanIndex].payments) {
+    loans[loanIndex].payments = [];
+  }
+  
+  loans[loanIndex].payments.push(payment);
+  
+  const newBalanceInfo = recalculateLoanBalance(loans[loanIndex]);
+  
+  updatePaymentScheduleWithActuals(loans[loanIndex]);
+  
+  syncPaymentToLoaneePortal(loans[loanIndex].applicationId, payment);
+  
+  let successMessage = `Payment of KES ${new Intl.NumberFormat().format(totalAmount)} recorded successfully!\n\nPayment breakdown:\n- Principal paid: KES ${new Intl.NumberFormat().format(principal)}\n- Interest charged: KES ${new Intl.NumberFormat().format(interest)}`;
+  
+  if (transactionRef) {
+    successMessage += `\n- Transaction Ref: ${transactionRef}`;
+  }
+  
+  successMessage += `\n\nNew Balance:\n- Principal: KES ${new Intl.NumberFormat().format(Math.round(newBalanceInfo.currentPrincipal))}\n- Accrued interest: KES ${new Intl.NumberFormat().format(Math.round(newBalanceInfo.accruedInterest))}\n- Total due: KES ${new Intl.NumberFormat().format(Math.round(newBalanceInfo.totalBalance))}`;
+  
+  if (newBalanceInfo.totalBalance <= 1) {
+    loans[loanIndex].status = 'closed';
+    loans[loanIndex].feedback = 'Loan fully paid off.';
+    loans[loanIndex].closedDate = new Date().toISOString();
+    showNotification(`Payment recorded! Loan for ${currentPaymentLoan.fullName} is now FULLY PAID and closed.`, 'success');
+  } else {
+    if (loans[loanIndex].status === 'dispatched') {
+      loans[loanIndex].status = 'active';
+    }
+    showNotification('Payment recorded successfully!', 'success');
+  }
+  
+  saveLoans(loans);
+  document.getElementById('recordPaymentModal').style.display = 'none';
+  renderLoans(document.querySelector('#sidebar button.active').dataset.filter);
+};
+
+// Modal close handlers
+document.getElementById('closePaymentModal').onclick = () => { 
+  document.getElementById('recordPaymentModal').style.display = 'none'; 
+};
+
+document.getElementById('cancelPayment').onclick = () => { 
+  document.getElementById('recordPaymentModal').style.display = 'none'; 
+};
+
+// ==========================================
+// PAYMENT SYNCHRONIZATION
+// ==========================================
+
+function syncPaymentToLoaneePortal(applicationId, payment) {
+  const loanPayments = JSON.parse(localStorage.getItem('loanPayments') || '{}');
+  
+  if (!loanPayments[applicationId]) {
+    loanPayments[applicationId] = [];
+  }
+  
+  const loaneePayment = {
+    date: payment.date,
+    amount: payment.amount,
+    method: payment.source,
+    fees: 0,
+    notes: payment.notes || '',
+    recordedAt: payment.recordedAt || payment.date
+  };
+  
+  loanPayments[applicationId].push(loaneePayment);
+  localStorage.setItem('loanPayments', JSON.stringify(loanPayments));
+}
+
+function monitorCashierPayments() {
+  const allLoans = JSON.parse(localStorage.getItem('loanApplications') || '[]');
+  const loanPayments = JSON.parse(localStorage.getItem('loanPayments') || '{}');
+  
+  allLoans.forEach(loan => {
+    if (loan.payments && loan.payments.length > 0) {
+      const loanId = loan.applicationId;
+      const existingPayments = loanPayments[loanId] || [];
+      
+      if (loan.payments.length > existingPayments.length) {
+        const newPayments = loan.payments.slice(existingPayments.length);
+        
+        newPayments.forEach(payment => {
+          const loaneePayment = {
+            date: payment.date,
+            amount: payment.amount,
+            method: payment.source,
+            fees: 0,
+            notes: payment.notes || '',
+            recordedAt: payment.recordedAt || payment.date
+          };
+          existingPayments.push(loaneePayment);
+        });
+        
+        loanPayments[loanId] = existingPayments;
+      }
+    }
+  });
+  
+  localStorage.setItem('loanPayments', JSON.stringify(loanPayments));
+}
+
+function monitorLoaneePayments() {
+  const loanPayments = JSON.parse(localStorage.getItem('loanPayments') || '{}');
+  const allLoans = JSON.parse(localStorage.getItem('loanApplications') || '[]');
+  
+  Object.keys(loanPayments).forEach(loanId => {
+    const payments = loanPayments[loanId];
+    const loanIndex = allLoans.findIndex(loan => loan.applicationId === loanId);
+    
+    if (loanIndex !== -1) {
+      const existingPayments = allLoans[loanIndex].payments || [];
+      
+      if (payments.length > existingPayments.length) {
+        const newPayments = payments.slice(existingPayments.length);
+        
+        if (!allLoans[loanIndex].payments) {
+          allLoans[loanIndex].payments = [];
+        }
+        
+        newPayments.forEach(payment => {
+          const cashierPayment = {
+            amount: payment.amount,
+            source: payment.method || 'Salary Deduction',
+            notes: payment.notes || '',
+            date: payment.date,
+            recordedBy: 'loanee_portal',
+            recordedAt: payment.recordedAt
+          };
+          allLoans[loanIndex].payments.push(cashierPayment);
+        });
+      }
+    }
+  });
+  
+  localStorage.setItem('loanApplications', JSON.stringify(allLoans));
+}
+
+// ==========================================
+// ACCOUNTANT UPDATES MONITOR
+// ==========================================
+
+function monitorAccountantUpdates() {
+  if (!localStorage.getItem('cashierLoggedIn')) return;
+
+  const AccData = JSON.parse(localStorage.getItem('AccDecisions') || '[]');
+
+  if (AccData.length > 0) {
+    const loans = getAllLoans();
+    let hasUpdates = false;
+
+    AccData.forEach(decision => {
+      const loan = loans.find(l => generateLoanId(l) === decision.loanId);
+      
+      if (loan) {
+        if (decision.status === 'accepted') {
+          loan.status = 'accepted';
+        } else if (decision.status === 'rejected') {
+          loan.status = 'rejected';
+        } else if (decision.status === 'returned') {
+          loan.status = 'returned';
+        } else if (decision.status === 'dispatched') {
+          loan.status = 'dispatched';
+          loan.dispatchDate = decision.dispatchDate || new Date().toISOString();
+
+          if (!loan.paymentSchedule || loan.paymentSchedule.length === 0) {
+            loan.paymentSchedule = generatePaymentSchedule(loan);
+          }
+        } else if (decision.status === 'active') {
+          loan.status = 'active';
+          loan.dispatchDate = decision.dispatchDate || loan.dispatchDate || new Date().toISOString();
+
+          if (!loan.paymentSchedule || loan.paymentSchedule.length === 0) {
+            loan.paymentSchedule = generatePaymentSchedule(loan);
+          }
+        }
+
+        loan.feedback = decision.feedback;
+        loan.AccDecision = decision;
+        loan.accountantProcessedDate = decision.processedDate;
+        syncLoanToLoanee(loan);
+        hasUpdates = true;
+      }
+    });
+
+    if (hasUpdates) {
+      saveLoans(loans);
+      localStorage.setItem('AccDecisions', '[]');
+      renderLoans(document.querySelector('#sidebar button.active')?.dataset.filter || 'all');
+      showNotification('New updates from Accountant have been processed.', 'success');
+    }
+  }
+}
+
+// ==========================================
+// ADMIN PASSWORD UPDATES MONITOR
+// ==========================================
+
+function monitorAdminPasswordUpdates() {
+  const passwordUpdate = JSON.parse(localStorage.getItem('staffPasswordUpdate') || '{}');
+  
+  if (passwordUpdate.pfNumber && passwordUpdate.timestamp) {
+    const now = new Date().getTime();
+    const updateTimestamp = new Date(passwordUpdate.timestamp).getTime();
+    
+    if (now - updateTimestamp < 15000) { // 15 seconds window
+      const currentPf = localStorage.getItem('cashierLoggedIn');
+      
+      if (currentPf === passwordUpdate.pfNumber) {
+        showNotification('Your password has been updated by the administrator. Please log in again.', 'warning');
+        
+        setTimeout(() => {
+          localStorage.removeItem('staffPasswordUpdate');
+          logoutCashier();
+        }, 3000);
+      }
+    }
+  }
+}
+
+// ==========================================
+// MODAL CLOSE HANDLERS
+// ==========================================
+
+window.onclick = function(event) {
+  if (event.target == document.getElementById('detailsModal')) {
+    document.getElementById('detailsModal').style.display = "none";
+  }
+  if (event.target == document.getElementById('feedbackModal')) {
+    document.getElementById('feedbackModal').style.display = "none";
+  }
+  if (event.target == document.getElementById('recordPaymentModal')) {
+    document.getElementById('recordPaymentModal').style.display = "none";
+  }
+  if (event.target == document.getElementById('amortModal')) {
+    document.getElementById('amortModal').style.display = "none";
+  }
+}
+
+// ==========================================
+// AUTHENTICATION
+// ==========================================
+
+function getCashiers() {
+  return JSON.parse(localStorage.getItem('cashiers') || '[]');
+}
+
+async function loginCashier(pf, password) {
+  const cashiers = getCashiers();
+  
+  // Hash the entered password
+  const hashedPassword = await hashPassword(password);
+  
+  const found = cashiers.find(c => c.pfNumber === pf && c.password === hashedPassword);
+  if (found) {
+    localStorage.setItem('cashierLoggedIn', pf);
+    return true;
+  }
+  return false;
+}
+
+function logoutCashier() {
+  localStorage.removeItem('cashierLoggedIn');
+  authSection.style.display = 'flex';
+  portalSection.style.display = 'none';
+  sidebar.style.display = 'none';
+  location.reload();
+}
+
+const authSection = document.getElementById('authSection');
+const portalSection = document.getElementById('portalSection');
+const sidebar = document.getElementById('sidebar');
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const pf = document.getElementById('loginpfNumber').value.trim();
+  const pw = document.getElementById('loginPassword').value.trim();
+
+  if (!pf || !pw) {
+    showNotification('Please enter both PF Number and Password.', 'error');
+    return;
+  }
+
+  const isValid = await loginCashier(pf, pw);
+  
+  if (isValid) {
+    authSection.style.display = 'none';
+    portalSection.style.display = 'block';
+    sidebar.style.display = 'flex';
+    addLogoutButton();
+    initializeSidebarButtons();
+    renderLoans('all');
+    showNotification('Login successful!', 'success');
+
+    // Auto-logout after 10 minutes
+    setTimeout(() => {
+      showNotification("Session expired. Please log in again.", 'warning');
+      logoutCashier();
+    }, 600000);
+  } else {
+    showNotification('Invalid PF number or password.', 'error');
+  }
+});
+
+// Auto-login if already logged in
+if (localStorage.getItem('cashierLoggedIn')) {
+  authSection.style.display = 'none';
+  portalSection.style.display = 'block';
+  sidebar.style.display = 'flex';
+  addLogoutButton();
+  initializeSidebarButtons();
+  renderLoans('all');
+}
+
+function addLogoutButton() {
+  if (!document.getElementById('logoutBtn')) {
+    const b = document.createElement('button');
+    b.id = 'logoutBtn';
+    b.textContent = "🚪 Logout";
+    b.style = "margin-top:auto;background:#b33a3a;color:white;border:none;padding:0.7rem;cursor:pointer;border-radius:4px;";
+    b.onclick = logoutCashier;
+    sidebar.appendChild(b);
+  }
+}
+
+document.querySelectorAll('.toggle-password').forEach(icon => {
+  icon.addEventListener('click', () => {
+    const target = document.getElementById(icon.dataset.target);
+    target.type = target.type === "password" ? "text" : "password";
+    icon.textContent = target.type === "password" ? "👁️" : "🙈";
+  });
+});
+
+// ==========================================
+// LOAN DATA MANAGEMENT
+// ==========================================
+
+function getAllLoans() {
+  const loans = JSON.parse(localStorage.getItem('loanApplications') || '[]');
+  
+  // Force all existing loans to use monthly frequency and regenerate schedules
+  loans.forEach(loan => {
+    loan.paymentFrequency = 'monthly';
+    
+    // Regenerate schedule for all dispatched/active loans to ensure monthly payments only
+    if ((loan.status === 'dispatched' || loan.status === 'active') && 
+        (loan.paymentSchedule && loan.paymentSchedule.length > 0)) {
+      
+      const dispatchDate = new Date(loan.dispatchDate || loan.applicationDate);
+      const oneYearLater = new Date(dispatchDate);
+      oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
+      
+      const paymentsInFirstYear = loan.paymentSchedule.filter(payment => {
+        const paymentDate = new Date(payment.dueDate);
+        return paymentDate >= dispatchDate && paymentDate <= oneYearLater;
+      }).length;
+      
+      // If there are more than 12 payments in the first year, it's bi-monthly
+      if (paymentsInFirstYear > 12) {
+        console.log(`Regenerating monthly schedule for loan: ${loan.fullName}`);
+        loan.paymentSchedule = generatePaymentSchedule(loan);
+      }
+    }
+  });
+  
+  return loans;
+} 
+
+function saveLoans(loans) {
+  // Ensure all loans are saved with monthly frequency
+  loans.forEach(loan => {
+    loan.paymentFrequency = 'monthly';
+  });
+  
+  localStorage.setItem('loanApplications', JSON.stringify(loans));
+  loans.forEach(loan => syncLoanToLoanee(loan));
+}
+
+function generateLoanId(loan) {
+  return `${loan.idNumber}_${loan.pfNumber}_${loan.loanType}_${loan.applicationDate}`;
+}
+
+function syncLoanToLoanee(updatedLoan) {
+  let loanees = JSON.parse(localStorage.getItem('loanees') || '[]');
+  const loaneeIndex = loanees.findIndex(l => l.idNumber === updatedLoan.idNumber);
+
+  if (loaneeIndex >= 0) {
+    let applications = loanees[loaneeIndex].loanApplications || [];
+    const loanIndex = applications.findIndex(app => generateLoanId(app) === generateLoanId(updatedLoan));
+    
+    if (loanIndex >= 0) {
+      applications[loanIndex] = { ...applications[loanIndex], ...updatedLoan };
+    } else {
+      applications.push(updatedLoan);
+    }
+
+    loanees[loaneeIndex].loanApplications = applications;
+    localStorage.setItem('loanees', JSON.stringify(loanees));
+  }
+}
+
+// ==========================================
+// RENDER LOANS TABLE
+// ==========================================
+
+function renderLoans(filter) {
+  let loans = getAllLoans();
+  const mainContent = document.getElementById('mainContent');
+  const settingsContent = document.getElementById('settingsContent');
+  const sectionTitle = document.getElementById('sectionTitle');
+  const loansTableBody = document.querySelector('#loansTable tbody');
+  
+  // Add export button for loans table
+  const existingExportBtn = document.getElementById('exportAllLoansBtn');
+  if (existingExportBtn) {
+    existingExportBtn.remove();
+  }
+  
+  if (filter !== 'settings' && filter !== 'reconciliation') {
+    const exportBtn = document.createElement('button');
+    exportBtn.id = 'exportAllLoansBtn';
+    exportBtn.textContent = '⬇️ Export to CSV';
+    exportBtn.className = 'action-btn';
+    exportBtn.style.marginLeft = '15px';
+    exportBtn.style.background = '#2196F3';
+    exportBtn.onclick = exportAllLoans;
+    sectionTitle.appendChild(exportBtn);
+  }
+  
+  if (filter === 'settings') {
+    mainContent.style.display = 'none';
+    settingsContent.style.display = 'block';
+    sectionTitle.textContent = 'System Settings';
+    loadSettings();
+    return;
+  } else if (filter === 'reconciliation') {
+    mainContent.style.display = 'none';
+    settingsContent.style.display = 'none';
+    showReconciliationView();
+    return;
+  } else {
+    mainContent.style.display = 'block';
+    settingsContent.style.display = 'none';
+  }
+  
+  switch(filter) {
+    case 'pending':
+      loans = loans.filter(l => l.status === 'pending');
+      sectionTitle.textContent = 'Pending Loans';
+      break;
+    case 'forwarded':
+      loans = loans.filter(l => l.status === 'forwarded');
+      sectionTitle.textContent = 'Loans Forwarded to Accountant';
+      break;
+    case 'accepted':
+      loans = loans.filter(l => l.status === 'accepted');
+      sectionTitle.textContent = 'Accepted Loans (Awaiting Dispatch)';
+      break;
+    case 'dispatched':
+      loans = loans.filter(l => l.status === 'dispatched' || l.status === 'active');
+      sectionTitle.textContent = 'Dispatched/Active Loans';
+      break;
+    case 'active':
+      loans = loans.filter(l => l.status === 'active');
+      sectionTitle.textContent = 'Active Loans (In Repayment)';
+      break;
+    case 'rejected':
+      loans = loans.filter(l => l.status === 'rejected');
+      sectionTitle.textContent = 'Rejected Loans';
+      break;
+    case 'returned':
+      loans = loans.filter(l => l.status === 'returned');
+      sectionTitle.textContent = 'Loans Returned by Accountant';
+      break;
+    case 'closed':
+      loans = loans.filter(l => l.status === 'closed');
+      sectionTitle.textContent = 'Closed Loans';
+      break;
+    case 'all':
+    default:
+      sectionTitle.textContent = 'All Loans';
+  }
+
+  loansTableBody.innerHTML = '';
+  
+  if (loans.length === 0) {
+    loansTableBody.innerHTML = '<tr><td colspan="10" style="text-align:center;">No loan applications found for this filter.</td></tr>';
+    return;
+  }
+
+  loans.sort((a, b) => new Date(b.applicationDate) - new Date(a.applicationDate));
+
+  loans.forEach(loan => {
+    const row = loansTableBody.insertRow();
+    row.className = `status-${loan.status}`;
+
+    row.insertCell().textContent = loan.fullName || 'N/A';
+    row.insertCell().textContent = loan.idNumber || 'N/A';
+    row.insertCell().textContent = loan.pfNumber || 'N/A';
+    row.insertCell().textContent = loan.loanType ? loan.loanType.charAt(0).toUpperCase() + loan.loanType.slice(1) : 'N/A';
+
+    const detailsCell = row.insertCell();
+    const detailsBtn = document.createElement('button');
+    detailsBtn.textContent = 'View Details';
+    detailsBtn.className = 'action-btn';
+    detailsBtn.onclick = () => showLoanDetails(loan);
+    detailsCell.appendChild(detailsBtn);
+
+    row.insertCell().textContent = loan.loanAmount ? `KES ${new Intl.NumberFormat().format(loan.loanAmount)}` : 'N/A';
+    
+    const balanceCell = row.insertCell();
+    if (loan.status === 'active' || loan.status === 'dispatched') {
+      const balanceInfo = recalculateLoanBalance(loan);
+      balanceCell.innerHTML = `<strong>KES ${new Intl.NumberFormat().format(Math.round(balanceInfo.totalBalance))}</strong>`;
+      if (balanceInfo.accruedInterest > 0) {
+        balanceCell.innerHTML += `<br><small style="color:#d84315;">+KES ${new Intl.NumberFormat().format(Math.round(balanceInfo.accruedInterest))} interest</small>`;
+      }
+    } else {
+      balanceCell.textContent = '-';
+    }
+
+    const amortCell = row.insertCell();
+    const amortBtn = document.createElement('button');
+    amortBtn.textContent = 'View Schedule';
+    amortBtn.className = 'action-btn';
+    amortBtn.onclick = () => showAmortization(loan);
+    amortCell.appendChild(amortBtn);
+
+    row.insertCell().textContent = loan.status ? loan.status.toUpperCase() : 'PENDING';
+
+    const actionsCell = row.insertCell();
+    actionsCell.className = 'actions-cell';
+    actionsCell.innerHTML = '';   
+    
+    if (loan.status === 'pending' || loan.status === 'returned') {
+      const forwardBtn = document.createElement('button');
+      forwardBtn.textContent = 'Forward to Acc';
+      forwardBtn.className = 'action-btn';
+      forwardBtn.onclick = () => handleLoanAction(loan, 'forward');
+      actionsCell.appendChild(forwardBtn);
+
+      const rejectBtn = document.createElement('button');
+      rejectBtn.textContent = 'Reject';
+      rejectBtn.className = 'action-btn reject-btn';
+      rejectBtn.onclick = () => showFeedbackModal(loan, 'reject');
+      actionsCell.appendChild(rejectBtn);
+
+    } else if (loan.status === 'forwarded') {
+      actionsCell.textContent = 'Awaiting Accountant...';
+    
+    } else if (loan.status === 'accepted') {
+      actionsCell.innerHTML = '<span style="color:#16a085; font-weight:bold;">✓ Awaiting Dispatch by Accountant</span>';
+      
+    } else if (loan.status === 'dispatched' || loan.status === 'active') {
+      const paymentBtn = document.createElement('button');
+      paymentBtn.textContent = '💳 Record Payment';
+      paymentBtn.className = 'action-btn';
+      paymentBtn.style.background = '#2c7a2c';
+      paymentBtn.style.fontWeight = 'bold';
+      paymentBtn.onclick = () => {
+        console.log('Opening payment modal for:', loan.fullName);
+        showRecordPaymentModal(loan);
+      };
+      actionsCell.appendChild(paymentBtn);
+
+      const closeBtn = document.createElement('button');
+      closeBtn.textContent = 'Close Case';
+      closeBtn.className = 'action-btn';
+      closeBtn.onclick = () => handleLoanAction(loan, 'close');
+      actionsCell.appendChild(closeBtn);
+      
+    } else if (loan.status === 'rejected') {
+      const closeBtn = document.createElement('button');
+      closeBtn.textContent = 'Close Case';
+      closeBtn.className = 'action-btn';
+      closeBtn.onclick = () => handleLoanAction(loan, 'close');
+      actionsCell.appendChild(closeBtn);
+    } else if (loan.status === 'closed') {
+      actionsCell.textContent = 'Case Closed';
+    }
+  });
+}
+
+// ==========================================
+// SIDEBAR BUTTON INITIALIZATION
+// ==========================================
+
+function initializeSidebarButtons() {
+  const sidebarButtons = document.querySelectorAll('#sidebar button:not(#logoutBtn)');
+  sidebarButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      sidebarButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderLoans(btn.dataset.filter);
+    });
+  });
+}
+
+// ==========================================
+// RECONCILIATION VIEW
+// ==========================================
+
+function showReconciliationView() {
+  const loans = getAllLoans().filter(l => l.status === 'active' || l.status === 'dispatched');
+  
+  const sectionTitle = document.getElementById('sectionTitle');
+  sectionTitle.textContent = '💰 Payment Reconciliation Dashboard';
+  
+  let html = `
+    <div class="balance-highlight">
+      <h3 style="margin-top:0;">Active Loans Summary</h3>
+      <p><strong>Total Active Loans:</strong> ${loans.length}</p>
+    </div>
+    
+    <table style="width:100%; border-collapse:collapse; margin-top:20px;">
+      <thead>
+        <tr style="background:#3a6b9a; color:white;">
+          <th style="padding:10px;">Loanee</th>
+          <th>PF Number</th>
+          <th>Original Amount</th>
+          <th>Current Balance</th>
+          <th>Months Since Last Payment</th>
+          <th>Accrued Interest</th>
+          <th>Payment Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+  
+  loans.forEach(loan => {
+    const balanceInfo = recalculateLoanBalance(loan);
+    updatePaymentScheduleWithActuals(loan);
+    
+    const overduePayments = (loan.paymentSchedule || []).filter(p => p.status === 'overdue').length;
+    const statusColor = overduePayments > 0 ? '#c0392b' : '#27ae60';
+    const statusText = overduePayments > 0 ? `${overduePayments} Overdue` : '✓ Current';
+    
+    html += `
+      <tr>
+        <td style="padding:10px;">${loan.fullName}</td>
+        <td>${loan.pfNumber}</td>
+        <td>KES ${new Intl.NumberFormat().format(loan.loanAmount)}</td>
+        <td><strong>KES ${new Intl.NumberFormat().format(Math.round(balanceInfo.totalBalance))}</strong></td>
+        <td>${balanceInfo.monthsSinceLastPayment} months</td>
+        <td style="color:#d84315;">KES ${new Intl.NumberFormat().format(Math.round(balanceInfo.accruedInterest))}</td>
+        <td style="color:${statusColor}; font-weight:bold;">${statusText}</td>
+        <td>
+          <button class="action-btn" onclick="showLoanDetails(${JSON.stringify(loan).replace(/"/g, '&quot;')})">View Details</button>
+        </td>
+      </tr>
+    `;
+  });
+  
+  html += '</tbody></table>';
+  
+  document.getElementById('mainContent').innerHTML = html;
+  document.getElementById('mainContent').style.display = 'block';
+}
+
+// ==========================================
+// LOAN ACTIONS
+// ==========================================
+
+function handleLoanAction(loan, action) {
+  let loans = getAllLoans();
+  const loanIndex = loans.findIndex(l => generateLoanId(l) === generateLoanId(loan));
+
+  if (loanIndex === -1) {
+    showNotification('Loan not found!', 'error');
+    return;
+  }
+
+  const currentLoan = loans[loanIndex];
+
+  if (action === 'forward') {
+    currentLoan.status = 'forwarded';
+    currentLoan.feedback = 'Forwarded to Accountant for approval.';
+    currentLoan.cashierProcessedDate = new Date().toISOString();
+    showNotification(`Loan for ${currentLoan.fullName} forwarded to Accountant.`, 'success');
+
+  } else if (action === 'reject') {
+    currentLoan.status = 'rejected';
+    currentLoan.feedback = 'Rejected by Cashier.';
+    currentLoan.cashierProcessedDate = new Date().toISOString();
+    showNotification(`Loan for ${currentLoan.fullName} rejected.`, 'success');
+
+  } else if (action === 'close') {
+    const confirmation = confirm(`Are you sure you want to CLOSE the case for ${currentLoan.fullName}? This action is final.`);
+   
+    if (confirmation) {
+      currentLoan.status = 'closed';
+      currentLoan.feedback = currentLoan.feedback || 'Case closed by Cashier.';
+      currentLoan.cashierProcessedDate = new Date().toISOString();
+      showNotification(`Loan case for ${currentLoan.fullName} closed.`, 'success');
+    } else {
+      return;
+    }
+  }
+
+  loans[loanIndex] = currentLoan;
+  saveLoans(loans);
+  renderLoans(document.querySelector('#sidebar button.active').dataset.filter);
+}
+
+// ==========================================
+// LOAN DETAILS MODAL
+// ==========================================
+
+function showLoanDetails(loan) {
+  const balanceInfo = recalculateLoanBalance(loan);
+  const payments = loan.payments || [];
+  const totalPaid = payments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+  
+  let detailsHtml = `
+    <button onclick="exportLoanDetails()" class="action-btn" style="float:right;background:#2196F3;margin-bottom:10px;">⬇️ Export Details</button>
+    <div class="balance-highlight">
+      <h3 style="color:#2e7d32; margin-top:0;">💰 Current Loan Financial Status</h3>
+      <table style="width:100%; font-size:0.95rem;">
+        <tr>
+          <td><strong>Original Loan Amount:</strong></td>
+          <td style="text-align:right;">KES ${new Intl.NumberFormat().format(loan.loanAmount)}</td>
+        </tr>
+        <tr>
+          <td><strong>Total Paid (All Payments):</strong></td>
+          <td style="text-align:right; color:#2e7d32;">KES ${new Intl.NumberFormat().format(Math.round(totalPaid))}</td>
+        </tr>
+        <tr>
+          <td><strong>├─ Principal Paid:</strong></td>
+          <td style="text-align:right;">KES ${new Intl.NumberFormat().format(Math.round(balanceInfo.totalPrincipalPaid))}</td>
+        </tr>
+        <tr>
+          <td><strong>└─ Interest Paid:</strong></td>
+          <td style="text-align:right; color:#d84315;">KES ${new Intl.NumberFormat().format(Math.round(balanceInfo.totalInterestPaid))}</td>
+        </tr>
+        <tr style="border-top: 1px solid #ccc;">
+          <td><strong>Current Principal Balance:</strong></td>
+          <td style="text-align:right;">KES ${new Intl.NumberFormat().format(Math.round(balanceInfo.currentPrincipal))}</td>
+        </tr>
+        <tr>
+          <td><strong>Accrued Interest (${balanceInfo.monthsSinceLastPayment} months):</strong></td>
+          <td style="text-align:right; color:#d84315;">KES ${new Intl.NumberFormat().format(Math.round(balanceInfo.accruedInterest))}</td>
+        </tr>
+        <tr style="border-top:2px solid #2e7d32; font-weight:bold; font-size:1.1rem;">
+          <td><strong>Total Balance Due:</strong></td>
+          <td style="text-align:right; color:#c62828;">KES ${new Intl.NumberFormat().format(Math.round(balanceInfo.totalBalance))}</td>
+        </tr>
+      </table>
+      <p style="margin:10px 0 0 0; font-size:0.85rem; color:#666;">
+        Last Payment: ${balanceInfo.lastPaymentDate.toLocaleDateString()} 
+        (${balanceInfo.monthsSinceLastPayment} months ago)
+      </p>
+    </div>
+    
+    <h3 style="color:#4a6b4a;">Loanee Information</h3>
+    <p><strong>Full Name:</strong> ${loan.fullName}</p>
+    <p><strong>ID Number:</strong> ${loan.idNumber}</p>
+    <p><strong>PF Number:</strong> ${loan.pfNumber}</p>
+    <p><strong>Email:</strong> ${loan.email || 'N/A'}</p>
+    
+    <hr>
+    <h3 style="color:#4a6b4a;">Loan Details</h3>
+    <p><strong>Loan Type:</strong> ${loan.loanType ? loan.loanType.charAt(0).toUpperCase() + loan.loanType.slice(1) : 'N/A'}</p>
+    <p><strong>Application Date:</strong> ${loan.applicationDate ? new Date(loan.applicationDate).toLocaleString() : 'N/A'}</p>
+    <p><strong>Status:</strong> ${loan.status ? loan.status.toUpperCase() : 'PENDING'}</p>
+    <p><strong>Payment Duration:</strong> ${loan.paymentDuration || 'N/A'} years</p>
+    <p><strong>Payment Frequency:</strong> Monthly</p>
+    <p><strong>Basic Salary:</strong> KES ${loan.basicSalary ? new Intl.NumberFormat().format(loan.basicSalary) : 'N/A'}</p>
+    
+    <hr>
+    <p><strong>Employment Type:</strong> ${loan.employmentType || 'N/A'}</p>${loan.employmentType === 'contracted' ? `
+        <p><strong>Contract Period:</strong> ${loan.contractPeriod || 'N/A'} months</p>
+        <p><strong>Contract Start:</strong> ${loan.contractStartDate || 'N/A'}</p>
+        <p><strong>Contract End:</strong> ${loan.contractEndDate || 'N/A'}</p>
+    ` : ''}
+    
+    <hr>
+    ${loan.loanType === 'mortgage' ? `
+        <p><strong>Property Location:</strong> ${loan.propertyLocation || 'N/A'}</p>
+        <p><strong>Property Value:</strong> KES ${loan.propertyValue ? new Intl.NumberFormat().format(loan.propertyValue) : 'N/A'}</p>
+        <hr>
+    ` : ''}
+    ${loan.loanType === 'car' ? `
+        <p><strong>Car Model:</strong> ${loan.carType || 'N/A'}</p>
+        <p><strong>Car Value:</strong> KES ${loan.carValue ? new Intl.NumberFormat().format(loan.carValue) : 'N/A'}</p>
+        <hr>
+    ` : ''}
+    <p><strong>Bank:</strong> ${loan.bankName || 'N/A'} (${loan.bankBranch || 'N/A'})</p>
+    <p><strong>Account Number:</strong> ${loan.bankAccountNumber || 'N/A'}</p>
+    <hr>
+    ${loan.dispatchDate ? `<p><strong>Dispatch Date:</strong> ${new Date(loan.dispatchDate).toLocaleString()}</p><hr>` : ''}
+  `;
+  
+  if (payments.length > 0) {
+    detailsHtml += `
+      <h3 style="color:#4a6b4a;">📋 Payment History (${payments.length} payments)</h3>
+      <table style="width:100%; font-size:0.85rem; border-collapse:collapse; margin-top:10px;">
+        <thead>
+          <tr style="background:#3a6b9a; color:white;">
+            <th style="padding:5px; border:1px solid #ccc;">#</th>
+            <th style="padding:5px; border:1px solid #ccc;">Date</th>
+            <th style="padding:5px; border:1px solid #ccc;">Months</th>
+            <th style="padding:5px; border:1px solid #ccc;">Amount</th>
+            <th style="padding:5px; border:1px solid #ccc;">Interest</th>
+            <th style="padding:5px; border:1px solid #ccc;">Principal</th>
+            <th style="padding:5px; border:1px solid #ccc;">Balance</th>
+            <th style="padding:5px; border:1px solid #ccc;">Source</th>
+            <th style="padding:5px; border:1px solid #ccc;">Ref ID</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    payments.forEach((p, idx) => {
+      detailsHtml += `
+        <tr>
+          <td style="padding:5px; border:1px solid #ccc;">${idx + 1}</td>
+          <td style="padding:5px; border:1px solid #ccc;">${new Date(p.date).toLocaleDateString()}</td>
+          <td style="padding:5px; border:1px solid #ccc;">${p.monthsFromLastPayment || 'N/A'}</td>
+          <td style="padding:5px; border:1px solid #ccc; font-weight:bold;">KES ${new Intl.NumberFormat().format(p.amount)}</td>
+          <td style="padding:5px; border:1px solid #ccc; color:#d84315;">KES ${new Intl.NumberFormat().format(Math.round(p.interestAmount || p.actualInterest || p.interestPortion || 0))}</td>
+          <td style="padding:5px; border:1px solid #ccc; color:#2e7d32;">KES ${new Intl.NumberFormat().format(Math.round(p.principalAmount || p.principalPortion || 0))}</td>
+          <td style="padding:5px; border:1px solid #ccc;">KES ${new Intl.NumberFormat().format(Math.round(p.balanceAfter || 0))}</td>
+          <td style="padding:5px; border:1px solid #ccc; font-size:0.8rem;">${p.source}</td>
+          <td style="padding:5px; border:1px solid #ccc; font-size:0.75rem; color:#666;">${p.transactionReference || '-'}</td>
+        </tr>
+      `;
+    });
+
+    detailsHtml += `
+        </tbody>
+      </table>
+      <hr>
+    `;
+  }
+  
+  detailsHtml += `
+    <p><strong>Accountant Process Date:</strong> ${loan.accountantProcessedDate ? new Date(loan.accountantProcessedDate).toLocaleString() : 'N/A'}</p>
+    <p><strong>Feedback:</strong> ${loan.feedback || 'None'}</p>
+  `;
+    
+  document.getElementById('loanDetailsContent').innerHTML = detailsHtml;
+  document.getElementById('detailsModal').style.display = 'block';
+}
+
+document.getElementById('closeDetailsModal').onclick = () => { 
+  document.getElementById('detailsModal').style.display = 'none'; 
+};
+
+// ==========================================
+// FEEDBACK MODAL
+// ==========================================
+
+let currentActionLoan = null;
+let currentActionType = null;
+
+function showFeedbackModal(loan, actionType) {
+    currentActionLoan = loan;
+    currentActionType = actionType;
+    document.getElementById('feedbackTextarea').value = '';
+
+    if (actionType === 'reject') {
+        document.getElementById('feedbackTitle').textContent = 'Reject Loan: Provide Reason';
+        document.getElementById('submitFeedback').textContent = 'Reject Loan';
+    } else {
+        document.getElementById('feedbackTitle').textContent = 'Return Loan: Provide Feedback';
+        document.getElementById('submitFeedback').textContent = 'Return Loan';
+    }
+    
+    document.getElementById('feedbackModal').style.display = 'block';
+}
+
+document.getElementById('submitFeedback').onclick = () => {
+    const feedback = document.getElementById('feedbackTextarea').value.trim();
+    if (!feedback) {
+        showNotification('Feedback/Reason is required.', 'error');
+        return;
+    }
+
+    let loans = getAllLoans();
+    const loanIndex = loans.findIndex(l => generateLoanId(l) === generateLoanId(currentActionLoan));
+
+    if (loanIndex === -1) {
+        showNotification('Loan not found!', 'error');
+        return;
+    }
+    
+    const loan = loans[loanIndex];
+    loan.feedback = feedback;
+    loan.cashierProcessedDate = new Date().toISOString();
+
+    if (currentActionType === 'reject') {
+        loan.status = 'rejected';
+        showNotification(`Loan for ${loan.fullName} permanently rejected.`, 'success');
+    } else if (currentActionType === 'return') {
+        loan.status = 'returned';
+        showNotification(`Loan for ${loan.fullName} returned to loanee for correction.`, 'success');
+    }
+
+    saveLoans(loans);
+    document.getElementById('feedbackModal').style.display = 'none';
+    renderLoans(document.querySelector('#sidebar button.active').dataset.filter);
+};
+
+document.getElementById('cancelFeedback').onclick = () => { 
+  document.getElementById('feedbackModal').style.display = 'none'; 
+};
+
+document.getElementById('cancelFeedbackButton').onclick = () => { 
+  document.getElementById('feedbackModal').style.display = 'none'; 
+};
+
+// ==========================================
+// EXPORT FUNCTIONS
+// ==========================================
+
+function exportTableToCSV(filename, tableSelector) {
+  const rows = document.querySelectorAll(`${tableSelector} tr`);
+  const csv = [];
+
+  rows.forEach(row => {
+    const cols = row.querySelectorAll('th, td');
+    const rowData = [];
+    cols.forEach(col => rowData.push(`"${col.innerText.replace(/"/g, '""')}"`));
+    csv.push(rowData.join(','));
+  });
+
+  const csvString = csv.join('\n');
+  const blob = new Blob([csvString], { type: 'text/csv' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+}
+
+function exportAllLoans() {
+  exportTableToCSV('all_loans.csv', '#loansTable');
+}
+
+function exportLoanDetails() {
+  const details = document.getElementById('loanDetailsContent');
+  if (!details) return showNotification('No loan details found.', 'error');
+
+  const lines = [...details.querySelectorAll('p')]
+    .map(p => p.innerText.replace(/\n/g, ' '))
+    .join('\n');
+
+  const blob = new Blob([lines], { type: 'text/plain' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'loan_details.txt';
+  link.click();
+}
+
+function exportAmortization() {
+  exportTableToCSV('amortization_schedule.csv', '#amortModal table');
+}
+
+// ==========================================
+// INITIALIZATION & MONITORING
+// ==========================================
+
+window.addEventListener('load', () => {
+  monitorCashierPayments();
+  monitorLoaneePayments();
+  
+  console.log('Page loaded - checking modal elements...');
+  console.log('Payment Amount field:', document.getElementById('paymentAmount'));
+  console.log('Actual Interest field:', document.getElementById('actualInterest'));
+  console.log('Record Payment Modal:', document.getElementById('recordPaymentModal'));
+});
+
+setInterval(() => {
+  monitorCashierPayments();
+  monitorLoaneePayments();
+  monitorAccountantUpdates();
+  monitorAdminPasswordUpdates(); // Added password update monitoring
+}, 3000);
+
+window.addEventListener('storage', (e) => {
+  if (e.key === 'loanApplications' || e.key === 'loanPayments') {
+    monitorCashierPayments();
+    monitorLoaneePayments();
+  }
+  
+  // Check for password updates
+  if (e.key === 'staffPasswordUpdate') {
+    monitorAdminPasswordUpdates();
+  }
+});
+
+if (localStorage.getItem('cashierLoggedIn')) {
+  loadSettings();
+}
+
+// 🔄 Detect full system reset (from Admin clear button)
+window.addEventListener('storage', e => {
+  if (e.key === 'systemReset') {
+    showNotification('The system was reset by the Administrator. You will be logged out now.', 'warning');
+    localStorage.clear();
+    sessionStorage.clear();
+    location.reload();
+  }
+});
+</script>
+</body>
+</html>

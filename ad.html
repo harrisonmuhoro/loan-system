@@ -1,0 +1,2912 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Administrator Portal — v3.0</title>
+    <style>
+        /* ===== CSS Variables ===== */
+        :root {
+            --green: #4a6b4a;
+            --blue: #3a6b9a;
+            --muted: #6c757d;
+            --danger: #b33a3a;
+            --warning: #ff9800;
+            --success: #4caf50;
+            --info: #17a2b8;
+            --sidebar-bg: #2c3e50; /* New sidebar color */
+            --bg: #f5f9f7;
+            
+            /* Light theme */
+            --bg-primary: #f5f9f7;
+            --bg-secondary: #fff;
+            --bg-tertiary: #f8f9fa;
+            --text-primary: #333;
+            --text-secondary: #6c757d;
+            --text-inverse: #fff;
+            --border-color: #e6e6e6;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-hover: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #3a3a3a;
+            --text-primary: #f0f0f0;
+            --text-secondary: #a0a0a0;
+            --text-inverse: #1a1a1a;
+            --border-color: #444;
+            --shadow: 0 2px 10px rgba(0,0,0,0.3);
+            --shadow-hover: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        /* ===== Base Styles ===== */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* ===== Login Screen Specific Styles ===== */
+body.login-screen {
+    background: #ffffff !important; /* Pure white background for login */
+}
+
+/* Ensure portal content uses theme backgrounds *
+body:not(.login-screen) {
+    background: var(--bg-primary);
+}
+
+/* ===== Pre-Login Header ===== */
+.pre-login-header {
+    background: linear-gradient(135deg, var(--green) 0%, #5a7b5a 100%);
+    color: var(--text-inverse);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+    transition: background-color 0.3s;
+    position: fixed;     /* ← CHANGED */
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 3100;       /* ← CHANGED */
+    border-bottom: 4px solid rgba(255, 255, 255, 0.2);
+}
+
+        .pre-login-header .logo-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 1rem;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pre-login-header .logo-box img {
+            height: 56px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .pre-login-header h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            letter-spacing: 0.5px;
+        }
+
+        .pre-login-header p {
+            margin: 0.5rem 0 0;
+            font-size: 1.1rem;
+            opacity: 0.95;
+            font-weight: 300;
+            letter-spacing: 0.3px;
+        }
+
+        .pre-login-header .security-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 1rem;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+        }
+
+        @media (max-width: 480px) {
+            .pre-login-header h1 {
+                font-size: 1.6rem;
+            }
+            
+            .pre-login-header p {
+                font-size: 0.95rem;
+            }
+            
+            .pre-login-header .logo-box img {
+                height: 42px;
+            }
+        }
+
+        /* ===== Accessibility ===== */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Focus styles */
+        button:focus, input:focus, select:focus, a:focus {
+            outline: 2px solid var(--blue);
+            outline-offset: 2px;
+        }
+
+        /* ===== Header ===== */
+        header {
+            background: var(--green);
+            color: var(--text-inverse);
+            padding: 1rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 70px;
+            box-shadow: var(--shadow);
+            transition: background-color 0.3s;
+        }
+
+        .hamburger {
+            position: absolute;
+            left: 1rem;
+            background: transparent;
+            border: 0;
+            color: var(--text-inverse);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .hamburger:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-box img {
+            height: 36px;
+            border-radius: 6px;
+        }
+
+        .logo-box h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        /* ===== Sidebar ===== */
+        nav {
+            position: fixed;
+            top: 70px;
+            bottom: 0;
+            left: 0;
+            width: 240px;
+            background: var(--sidebar-bg); /* Using the new sidebar color */
+            color: var(--text-inverse);
+            padding: 12px;
+            box-shadow: 2px 0 6px rgba(0, 0, 0, 0.08);
+            overflow: auto;
+            box-sizing: border-box;
+            transition: width 0.3s, background-color 0.3s;
+            z-index: 1000;
+        }
+
+        nav.collapsed {
+            width: 72px;
+        }
+
+        nav .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            transition: justify-content 0.3s, padding 0.3s;
+        }
+
+        nav .sidebar-logo img {
+            height: 36px;
+            width: 36px;
+            border-radius: 6px;
+            transition: height 0.3s, width 0.3s;
+        }
+
+        /* Logo adjustments when sidebar is collapsed */
+        nav.collapsed .sidebar-logo {
+            justify-content: center;
+            padding: 12px 0;
+        }
+
+        nav.collapsed .sidebar-logo img {
+            height: 36px;
+            width: 36px;
+            object-fit: cover;
+        }
+
+        nav.collapsed .sidebar-logo .small {
+            display: none;
+        }
+
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav li {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background-color 0.3s, transform 0.2s;
+            position: relative;
+        }
+
+        nav li:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        nav li.active {
+            background: var(--blue);
+            color: var(--text-inverse);
+        }
+
+        nav li.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--green);
+        }
+
+        /* ===== Main Content ===== */
+        .main {
+            margin-left: 260px;
+            padding: 100px 20px 40px;
+            transition: margin-left 0.3s;
+        }
+
+        nav.collapsed ~ .main {
+            margin-left: 86px;
+        }
+
+        nav.collapsed .label {
+            display: none;
+        }
+
+        nav.collapsed li {
+            justify-content: center;
+        }
+
+        nav.collapsed #logoutBtn {
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        nav li {
+            white-space: nowrap;
+        }
+
+        /* ===== Sections ===== */
+        .hidden {
+            display: none !important;
+        }
+
+        section {
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            color: var(--text-primary);
+            margin: 0 0 1.5rem;
+            font-size: 1.8rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            color: var(--text-primary);
+            margin: 1.5rem 0 1rem;
+            font-size: 1.3rem;
+        }
+
+        /* ===== Stats Section ===== */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            border-left: 6px solid var(--green);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--green);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ===== Tables ===== */
+        .table-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: auto;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        th {
+            background: var(--blue);
+            color: var(--text-inverse);
+            position: sticky;
+            top: 0;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background: var(--bg-tertiary);
+        }
+
+        /* Status row colors */
+        tr.pending { background: #fff9e6; }
+        tr.forwarded { background: #cce7ff; }
+        tr.accepted { background: #d4edda; }
+        tr.dispatched { background: #a7e9a7; }
+        tr.returned { background: #ffeaa7; }
+        tr.rejected { background: #f8d7da; }
+
+        /* ===== Cards & Forms ===== */
+        .account-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .account-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        input, select, textarea {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-size: 14px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(58, 107, 154, 0.1);
+        }
+
+        button {
+            padding: 10px 16px;
+            border-radius: 6px;
+            border: 0;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: var(--blue);
+            color: var(--text-inverse);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: var(--text-inverse);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: var(--text-inverse);
+        }
+
+        .btn-secondary {
+            background: var(--muted);
+            color: var(--text-inverse);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: var(--text-inverse);
+        }
+
+        .btn-info {
+            background: var(--info);
+            color: var(--text-inverse);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .small {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .row > * {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        label {
+            font-weight: 600;
+            margin-right: 6px;
+            color: var(--text-primary);
+        }
+
+        .center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ===== Password Requirements ===== */
+        .password-requirements {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            margin-bottom: 8px;
+        }
+
+        .password-requirements ul {
+            margin: 4px 0 0 20px;
+            padding: 0;
+        }
+
+        .password-requirements li {
+            margin-bottom: 2px;
+        }
+
+        .requirement-met {
+            color: var(--success);
+        }
+
+        .requirement-unmet {
+            color: var(--danger);
+        }
+
+        .password-strength {
+            height: 5px;
+            border-radius: 3px;
+            margin-top: 5px;
+            background-color: #e0e0e0;
+        }
+
+        .password-strength-bar {
+            height: 100%;
+            border-radius: 3px;
+            width: 0;
+            transition: width 0.3s, background-color 0.3s;
+        }
+
+        .strength-weak {
+            background-color: var(--danger);
+            width: 33%;
+        }
+
+        .strength-medium {
+            background-color: var(--warning);
+            width: 66%;
+        }
+
+        .strength-strong {
+            background-color: var(--success);
+            width: 100%;
+        }
+
+        /* ===== Loading Spinner ===== */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-content {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* ===== Modal ===== */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow: auto;
+            box-shadow: var(--shadow-hover);
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .close-modal {
+            background: transparent;
+            border: 0;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .close-modal:hover {
+            background: var(--bg-tertiary);
+        }
+
+        /* ===== Pagination ===== */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            min-width: 40px;
+        }
+
+        .pagination-info {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* ===== Search ===== */
+        .search-container {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding-left: 40px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        /* ===== Theme Toggle ===== */
+        .theme-toggle {
+            position: absolute;
+            right: 140px;
+            background: transparent;
+            border: 0;
+            color: var(--text-inverse);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        /* ===== Toast Notifications ===== */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 4000;
+        }
+
+        .toast {
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--success);
+            padding: 1rem 1.5rem;
+            border-radius: 4px;
+            box-shadow: var(--shadow-hover);
+            margin-bottom: 1rem;
+            min-width: 300px;
+            animation: slideInRight 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .toast.error {
+            border-left-color: var(--danger);
+        }
+
+        .toast.warning {
+            border-left-color: var(--warning);
+        }
+
+        .toast.info {
+            border-left-color: var(--info);
+        }
+
+        /* ===== Real-time Update Indicator ===== */
+        .update-indicator {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--info);
+            color: var(--text-inverse);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            z-index: 1500;
+            animation: slideDown 0.3s;
+            display: none;
+        }
+
+        @keyframes slideDown {
+            from { transform: translate(-50%, -100%); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+
+        /* ===== Activity Feed ===== */
+        .activity-feed {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+        }
+
+        .activity-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: start;
+            gap: 0.75rem;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .activity-icon.accepted {
+            background: var(--success);
+            color: white;
+        }
+
+        .activity-icon.dispatched {
+            background: var(--info);
+            color: white;
+        }
+
+        .activity-icon.rejected {
+            background: var(--danger);
+            color: white;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== Responsive Design ===== */
+        @media (max-width: 760px) {
+            nav {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+
+            nav.mobile-open {
+                transform: translateX(0);
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 92px 12px;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 600px;
+            }
+
+            .row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .row > * {
+                margin-bottom: 8px;
+            }
+
+            .modal-content {
+                width: 95%;
+                max-height: 90vh;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .logo-box h1 {
+                font-size: 1.2rem;
+            }
+
+            .theme-toggle {
+                right: 100px;
+            }
+        }
+
+        /* ===== Error States ===== */
+        .error-message {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+
+        .input-error {
+            border-color: var(--danger) !important;
+        }
+
+        /* ===== Success States ===== */
+        .success-message {
+            color: var(--success);
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+
+        /* ===== Utility Classes ===== */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .mt-1 { margin-top: 0.5rem; }
+        .mt-2 { margin-top: 1rem; }
+        .mt-3 { margin-top: 1.5rem; }
+        .mb-1 { margin-bottom: 0.5rem; }
+        .mb-2 { margin-bottom: 1rem; }
+        .mb-3 { margin-bottom: 1.5rem; }
+        .p-1 { padding: 0.5rem; }
+        .p-2 { padding: 1rem; }
+        .p-3 { padding: 1.5rem; }
+    </style>
+</head>
+<body>
+    <!-- Screen reader announcements -->
+    <div id="statusMessage" class="sr-only" aria-live="polite"></div>
+    
+    <!-- Toast container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Real-time update indicator -->
+    <div id="updateIndicator" class="update-indicator">
+        🔄 Data updated from other portal
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p class="mt-2">Loading...</p>
+        </div>
+    </div>
+
+    <!-- PRE-LOGIN HEADER -->
+    <header class="pre-login-header" id="preLoginHeader">
+        <div class="logo-box">
+            <img src="logo.jpg" alt="Logo">
+            <h1>Administrator Portal</h1>
+        </div>
+    </header>
+
+    <!-- AUTH SCREEN -->
+    <div id="authScreen" class="auth-screen">
+        <div class="auth-card">
+            <h2>🔑 Admin Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginPf">Admin ID</label>
+                    <input id="loginPf" type="text" placeholder="10101010101" required>
+                    <div id="loginPfError" class="error-message"></div>
+                </div>
+                <div class="form-group">
+                    <label for="loginPwd">Password</label>
+                    <input id="loginPwd" type="password" placeholder="••••••••" required>
+                    <div id="loginPwdError" class="error-message"></div>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%;">
+                    ➡️ Login
+                </button>
+                <p class="small mt-2">Default: <strong>10101010101 / admin123</strong></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN HEADER (Hidden until login) -->
+    <header id="mainHeader" class="hidden">
+        <button id="menuToggle" class="hamburger" aria-label="Toggle navigation menu">
+            ☰
+        </button>
+        <div class="logo-box">
+            <img src="logo.jpg" alt="Logo">
+            <h1>Administrator Portal</h1>
+        </div>
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+            🌙
+        </button>
+        <div style="position:absolute;right:12px;font-size:13px;">
+            🔄 Auto-updating
+        </div>
+    </header>
+
+    <!-- SIDEBAR NAVIGATION (Hidden until login) -->
+    <nav id="sidebar" class="hidden collapsed" role="navigation" aria-label="Admin navigation">
+        <div class="sidebar-logo">
+            <img src="logo.jpg" alt="logo">
+            <div class="small">Admin Portal</div>
+        </div>
+        <ul>
+            <li id="navDashboard" class="active" tabindex="0" role="button" aria-current="page">
+                📊 <span class="label">Dashboard</span>
+            </li>
+            <li id="navLoans" tabindex="0" role="button">
+                💰 <span class="label">Loans Overview</span>
+            </li>
+            <li id="navAccounts" tabindex="0" role="button">
+                🏦 <span class="label">Accounts</span>
+            </li>
+            <li id="navStaff" tabindex="0" role="button">
+                👥 <span class="label">Staff Management</span>
+            </li>
+            <li id="navActivity" tabindex="0" role="button">
+                📋 <span class="label">Activity Feed</span>
+            </li>
+            <li id="navSettings" tabindex="0" role="button">
+                ⚙️ <span class="label">Settings</span>
+            </li>
+        </ul>
+        <div style="margin-top: 16px;">
+            <button id="logoutBtn" class="btn-danger" style="width: calc(100% - 16px); margin: 0 8px;">
+                🚪 <span class="label">Logout</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main" id="main">
+        <!-- Dashboard Section -->
+        <section id="dashboardSection">
+            <h2>System Overview</h2>
+            <div class="stats" id="dashboardStats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalLoans">0</div>
+                    <div class="stat-label">Total Loans</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="pendingLoans">0</div>
+                    <div class="stat-label">Pending (Cash)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="forwardedLoans">0</div>
+                    <div class="stat-label">Forwarded (Acc)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="acceptedLoans">0</div>
+                    <div class="stat-label">Accepted (Acc.)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="dispatchedLoans">0</div>
+                    <div class="stat-label">Dispatched (Acc.)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="returnedLoans">0</div>
+                    <div class="stat-label">Returned (Cash/Acc.)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="rejectedLoans">0</div>
+                    <div class="stat-label">Rejected</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalFunds">0</div>
+                    <div class="stat-label">Total Fund Balance</div>
+                </div>
+            </div>
+
+            <!-- Recent Activity Summary -->
+            <div class="account-card">
+                <h3>Recent Activity</h3>
+                <div id="recentActivity" class="activity-feed">
+                    <p class="small text-center">No recent activity</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Loans Section -->
+        <section id="loansSection" class="hidden">
+            <h2>All Loan Applications</h2>
+            <div class="row mb-2" style="justify-content: space-between;">
+                <div class="row" style="flex: 1;">
+                    <div class="search-container">
+                        <span class="search-icon">🔍</span>
+                        <input id="searchInput" class="search-input" placeholder="Search by name, ID, or PF number">
+                    </div>
+                    <label>Status:
+                        <select id="filterStatus">
+                            <option value="">All</option>
+                            <option value="pending">Pending</option>
+                            <option value="forwarded">Forwarded</option>
+                            <option value="accepted">Accepted</option>
+                            <option value="dispatched">Dispatched</option>
+                            <option value="returned">Returned</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </label>
+                    <label>Loan Type:
+                        <select id="filterLoanType">
+                            <option value="">All</option>
+                            <option value="mortgage">Mortgage</option>
+                            <option value="car">Car</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="row">
+                    <button id="filterBtn" class="btn-secondary">
+                        🔧 Filter
+                    </button>
+                    <button id="clearFilters" class="btn-outline">
+                        ❌ Clear
+                    </button>
+                    <button id="refreshBtn" class="btn-secondary">
+                        🔄 Refresh
+                    </button>
+                    <button id="exportBtn" class="btn-success">
+                        📥 Export
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="loansTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Full Name</th>
+                            <th>ID Number</th>
+                            <th>PF Number</th>
+                            <th>Loan Type</th>
+                            <th>Loan Amount</th>
+                            <th>Status</th>
+                            <th>Feedback</th>
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div id="loansPagination" class="pagination"></div>
+        </section>
+
+        <!-- Accounts Section -->
+        <section id="accountsSection" class="hidden">
+            <h2>Funding Accounts & Top-up</h2>
+            <div id="fundingAccountsContainer"></div>
+
+            <h3>Add Funding Account</h3>
+            <form id="addFundForm" class="row mb-2">
+                <input id="newFundName" placeholder="Account name (e.g., Housing Fund)" required>
+                <input id="newFundBalance" type="number" placeholder="Initial balance (KES)" required>
+                <button type="submit" class="btn-primary">
+                    ➕ Add Account
+                </button>
+            </form>
+        </section>
+
+        <!-- Staff Management Section -->
+        <section id="staffSection" class="hidden">
+            <h2>Staff Management</h2>
+            <div class="table-container">
+                <table id="staffTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Full Name</th>
+                            <th>PF Number</th>
+                            <th>Role</th>
+                            <th>Password</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <h3>Add / Update Staff</h3>
+            <form id="staffForm" class="row mb-2">
+                <input id="staffName" placeholder="Full Name" required>
+                <input id="staffPf" placeholder="PF Number (9-11 digits)" required>
+                <div style="position: relative; flex: 1;">
+                    <input id="staffPwd" type="password" placeholder="Password" required>
+                    <div class="password-requirements">
+                        Password must contain:
+                        <ul>
+                            <li id="req-length" class="requirement-unmet">At least 8 characters</li>
+                            <li id="req-alphanumeric" class="requirement-unmet">Both letters and numbers (alphanumeric)</li>
+                        </ul>
+                    </div>
+                    <div class="password-strength">
+                        <div id="strengthBar" class="password-strength-bar"></div>
+                    </div>
+                </div>
+                <select id="staffRole">
+                    <option value="cashier">Cashier</option>
+                    <option value="accountant">Accountant</option>
+                </select>
+                <button type="submit" class="btn-primary" id="saveStaffBtn" disabled>
+                    💾 Save Staff
+                </button>
+                <button type="button" id="cancelEditBtn" class="btn-secondary hidden">
+                    ❌ Cancel Edit
+                </button>
+            </form>
+            <p id="staffMsg" class="small"></p>
+        </section>
+
+        <!-- Activity Feed Section -->
+        <section id="activitySection" class="hidden">
+            <h2>Real-time Activity Feed</h2>
+            <div class="account-card">
+                <div class="row mb-2">
+                    <button id="clearActivityBtn" class="btn-secondary">
+                        🗑️ Clear Activity
+                    </button>
+                    <button id="refreshActivityBtn" class="btn-secondary">
+                        🔄 Refresh
+                    </button>
+                </div>
+                <div id="activityFeed" class="activity-feed">
+                    <p class="small text-center">No activity recorded</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settingsSection" class="hidden">
+            <h2>System Settings</h2>
+            
+            <div class="account-card">
+                <h3>Interest Rate Settings</h3>
+                <label for="amortRate">Annual Interest Rate (%) for Amortization</label>
+                <div class="row mt-2">
+                    <input id="amortRate" type="number" min="0" max="100" step="0.1" value="3.0" style="width: 120px;">
+                    <button id="saveAmort" class="btn-primary">
+                        💾 Save Rate
+                    </button>
+                    <div id="amortStatus" class="small ml-2"></div>
+                </div>
+            </div>
+
+            <div class="account-card">
+                <h3>Data Management</h3>
+                <div class="row mt-2">
+                    <button id="backupDataBtn" class="btn-success">
+                        📥 Backup Data
+                    </button>
+                    <button id="restoreDataBtn" class="btn-warning">
+                        📤 Restore Data
+                    </button>
+                    <input type="file" id="restoreFileInput" accept=".json" style="display: none;">
+                </div>
+            </div>
+
+            <div class="account-card">
+                <h3>Activity Monitoring</h3>
+                <div class="row mt-2">
+                    <button id="viewLogsBtn" class="btn-primary">
+                        📋 View Activity Logs
+                    </button>
+                    <button id="clearLogsBtn" class="btn-secondary">
+                        🗑️ Clear Logs
+                    </button>
+                </div>
+            </div>
+
+            <div class="account-card">
+                <h3>Danger Zone</h3>
+                <p class="small text-danger">These actions are irreversible and will permanently delete data.</p>
+                <div class="row mt-2">
+                    <button id="clearStaffBtn" class="btn-danger">
+                        🗑️ Clear All Staff
+                    </button>
+                    <button id="clearLoansBtn" class="btn-danger">
+                        🗑️ Clear ALL Loans
+                    </button>
+                    <button id="clearSystemBtn" class="btn-danger">
+                        💣 Clear ALL System Data
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+            /* ===========================
+           🌐 Centralized Storage Keys
+           =========================== */
+        const STORAGE = {
+            STAFF: 'staffAccounts',
+            CASHIERS: 'cashiers',
+            ACCOUNTANTS: 'accountantAccounts',
+            MANAGERS: 'managers',
+            LOANS: 'loanApplications',
+            FUNDS: 'fundingAccounts',
+            AMORT: 'amortizationRate',
+            ADMIN_FLAG: 'adminLoggedIn',
+            ADMIN_LOGS: 'adminLogs',
+            THEME: 'theme',
+            ACTIVITY_FEED: 'activityFeed',
+            LOAN_UPDATES: 'loanUpdates'
+        };
+
+        /* ===========================
+           ⚙️ Utilities & Persistence
+           =========================== */
+        const ADMIN_PF = '10101010101';
+        const ADMIN_PW = 'admin123';
+
+        // DOM Cache
+        const elements = {
+            authScreen: document.getElementById('authScreen'),
+            preLoginHeader: document.getElementById('preLoginHeader'),
+            mainHeader: document.getElementById('mainHeader'),
+            sidebar: document.getElementById('sidebar'),
+            main: document.getElementById('main'),
+            loadingOverlay: document.getElementById('loadingOverlay'),
+            toastContainer: document.getElementById('toastContainer'),
+            statusMessage: document.getElementById('statusMessage'),
+            themeToggle: document.getElementById('themeToggle'),
+            loginForm: document.getElementById('loginForm'),
+            staffForm: document.getElementById('staffForm'),
+            addFundForm: document.getElementById('addFundForm'),
+            updateIndicator: document.getElementById('updateIndicator')
+        };
+
+        // State
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let editingPf = null;
+        let currentTheme = localStorage.getItem(STORAGE.THEME) || 'light';
+        let lastLoanUpdate = Date.now();
+
+        // Initialize theme
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        updateThemeIcon();
+
+        /* ===========================
+           🔐 Security Utilities
+           =========================== */
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hash))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function validateStaffInput(data) {
+            const errors = [];
+            
+            if (!data.name || data.name.trim().length < 2) {
+                errors.push("Name must be at least 2 characters");
+            }
+            
+            if (!/^\d{9,11}$/.test(data.pfNumber)) {
+                errors.push("PF Number must be 9-11 digits");
+            }
+            
+            if (!data.password || data.password.length < 8) {
+                errors.push("Password must be at least 8 characters");
+            }
+            
+            // Check for alphanumeric requirement
+            const hasLetter = /[a-zA-Z]/.test(data.password);
+            const hasNumber = /[0-9]/.test(data.password);
+            
+            if (!hasLetter || !hasNumber) {
+                errors.push("Password must contain both letters and numbers (alphanumeric)");
+            }
+            
+            return errors;
+        }
+
+        // Password strength checker
+        function checkPasswordStrength(password) {
+            const lengthReq = document.getElementById('req-length');
+            const alphanumericReq = document.getElementById('req-alphanumeric');
+            const strengthBar = document.getElementById('strengthBar');
+            const saveBtn = document.getElementById('saveStaffBtn');
+            
+            let requirementsMet = 0;
+            
+            // Check length
+            if (password.length >= 8) {
+                lengthReq.classList.remove('requirement-unmet');
+                lengthReq.classList.add('requirement-met');
+                requirementsMet++;
+            } else {
+                lengthReq.classList.remove('requirement-met');
+                lengthReq.classList.add('requirement-unmet');
+            }
+            
+            // Check alphanumeric
+            const hasLetter = /[a-zA-Z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+            
+            if (hasLetter && hasNumber) {
+                alphanumericReq.classList.remove('requirement-unmet');
+                alphanumericReq.classList.add('requirement-met');
+                requirementsMet++;
+            } else {
+                alphanumericReq.classList.remove('requirement-met');
+                alphanumericReq.classList.add('requirement-unmet');
+            }
+            
+            // Update strength bar
+            strengthBar.className = 'password-strength-bar';
+            
+            if (password.length === 0) {
+                strengthBar.style.width = '0';
+                saveBtn.disabled = true;
+            } else if (requirementsMet === 1) {
+                strengthBar.classList.add('strength-weak');
+                saveBtn.disabled = true;
+            } else if (requirementsMet === 2) {
+                // Check for additional strength factors
+                const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+                const hasUpper = /[A-Z]/.test(password);
+                const hasLower = /[a-z]/.test(password);
+                
+                if (hasSpecial && hasUpper && hasLower) {
+                    strengthBar.classList.add('strength-strong');
+                } else {
+                    strengthBar.classList.add('strength-medium');
+                }
+                
+                saveBtn.disabled = false;
+            }
+        }
+
+        /* ===========================
+           💾 Storage Utilities
+           =========================== */
+        function readJSON(key, fallback = []) {
+            try {
+                return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
+            } catch (e) {
+                console.error(`Error reading ${key}:`, e);
+                return fallback;
+            }
+        }
+
+        function writeJSON(key, val) {
+            try {
+                localStorage.setItem(key, JSON.stringify(val));
+                return true;
+            } catch (e) {
+                console.error(`Error writing ${key}:`, e);
+                return false;
+            }
+        }
+
+        function getLoans() { return readJSON(STORAGE.LOANS); }
+        function saveLoans(list) { 
+            const success = writeJSON(STORAGE.LOANS, list);
+            if (success) {
+                // Trigger update for other portals
+                localStorage.setItem(STORAGE.LOAN_UPDATES, Date.now().toString());
+            }
+            return success;
+        }
+        function getFundingAccounts() { return readJSON(STORAGE.FUNDS); }
+        function saveFundingAccounts(list) { return writeJSON(STORAGE.FUNDS, list); }
+        function getStaff() { return readJSON(STORAGE.STAFF); }
+
+        function saveStaff(list) {
+            const success = writeJSON(STORAGE.STAFF, list);
+            if (!success) return false;
+
+            const cashiers = list.filter(s => s.role === 'cashier');
+            const accountants = list.filter(s => s.role === 'accountant');
+
+            writeJSON(STORAGE.CASHIERS, cashiers);
+            writeJSON(STORAGE.MANAGERS, cashiers);
+
+            const accountantAccounts = accountants.map(a => ({
+                pfNumber: a.pfNumber,
+                fullName: a.name,
+                email: a.email || `${a.name.toLowerCase().replace(/\s+/g, '')}@example.com`,
+                password: a.password,
+                role: 'accountant',
+                createdAt: a.createdAt
+            }));
+            writeJSON(STORAGE.ACCOUNTANTS, accountantAccounts);
+
+            return true;
+        }
+
+        /* ===========================
+           💰 Currency Formatting
+           =========================== */
+        function fmtKES(n) {
+            n = Number(n) || 0;
+            return 'KES ' + new Intl.NumberFormat('en-KE', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(n);
+        }
+
+        /* ===========================
+           📢 UI Utilities
+           =========================== */
+        function showLoading(show = true) {
+            elements.loadingOverlay.classList.toggle('hidden', !show);
+        }
+
+        function showToast(message, type = 'success', duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            }[type] || 'ℹ️';
+            
+            toast.innerHTML = `
+                <span>${icon}</span>
+                <span>${escapeHtml(message)}</span>
+            `;
+            
+            elements.toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideInRight 0.3s reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+            
+            // Announce to screen readers
+            announceToScreenReader(`${type}: ${message}`);
+        }
+
+        function announceToScreenReader(message) {
+            elements.statusMessage.textContent = message;
+            setTimeout(() => {
+                elements.statusMessage.textContent = '';
+            }, 1000);
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        function exportToCSV(data, filename) {
+            if (!data || data.length === 0) {
+                showToast('No data to export', 'warning');
+                return;
+            }
+            
+            const headers = Object.keys(data[0]);
+            const csvContent = [
+                headers.join(','),
+                ...data.map(row => headers.map(header => {
+                    const value = row[header] || '';
+                    return `"${String(value).replace(/"/g, '""')}"`;
+                }).join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showToast('Data exported successfully', 'success');
+        }
+
+        function logAdminAction(action, details) {
+            const logs = readJSON(STORAGE.ADMIN_LOGS, []);
+            logs.push({
+                timestamp: new Date().toISOString(),
+                adminPf: ADMIN_PF,
+                action,
+                details
+            });
+            writeJSON(STORAGE.ADMIN_LOGS, logs);
+        }
+
+        /* ===========================
+           🔄 Real-time Activity Feed
+           =========================== */
+        function addActivityEntry(type, loanId, details) {
+            const activities = readJSON(STORAGE.ACTIVITY_FEED, []);
+            const entry = {
+                id: Date.now().toString(),
+                type,
+                loanId,
+                details,
+                timestamp: new Date().toISOString()
+            };
+            
+            activities.unshift(entry);
+            
+            // Keep only last 50 activities
+            if (activities.length > 50) {
+                activities.splice(50);
+            }
+            
+            writeJSON(STORAGE.ACTIVITY_FEED, activities);
+            
+            // Show update indicator
+            showUpdateIndicator();
+            
+            // Update activity feed if visible
+            if (!document.getElementById('activitySection').classList.contains('hidden')) {
+                renderActivityFeed();
+            }
+            
+            // Update recent activity on dashboard
+            updateRecentActivity();
+        }
+
+        function showUpdateIndicator() {
+            const indicator = elements.updateIndicator;
+            indicator.style.display = 'block';
+            
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 3000);
+        }
+
+        function renderActivityFeed() {
+            const container = document.getElementById('activityFeed');
+            const activities = readJSON(STORAGE.ACTIVITY_FEED, []);
+            
+            if (activities.length === 0) {
+                container.innerHTML = '<p class="small text-center">No activity recorded</p>';
+                return;
+            }
+            
+            container.innerHTML = activities.map(activity => {
+                const icon = {
+                    accepted: '✅',
+                    dispatched: '🚀',
+                    rejected: '❌',
+                    returned: '↩️',
+                    forwarded: '➡️'
+                }[activity.type] || '📋';
+                
+                const title = {
+                    accepted: 'Loan Accepted',
+                    dispatched: 'Funds Dispatched',
+                    rejected: 'Loan Rejected',
+                    returned: 'Loan Returned',
+                    forwarded: 'Loan Forwarded'
+                }[activity.type] || 'Activity';
+                
+                return `
+                    <div class="activity-item">
+                        <div class="activity-icon ${activity.type}">
+                            ${icon}
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">${title}</div>
+                            <div class="small">${escapeHtml(activity.details)}</div>
+                            <div class="activity-time">${new Date(activity.timestamp).toLocaleString()}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateRecentActivity() {
+            const container = document.getElementById('recentActivity');
+            const activities = readJSON(STORAGE.ACTIVITY_FEED, []);
+            
+            if (activities.length === 0) {
+                container.innerHTML = '<p class="small text-center">No recent activity</p>';
+                return;
+            }
+            
+            // Show only last 5 activities
+            const recent = activities.slice(0, 5);
+            
+            container.innerHTML = recent.map(activity => {
+                const icon = {
+                    accepted: '✅',
+                    dispatched: '🚀',
+                    rejected: '❌',
+                    returned: '↩️',
+                    forwarded: '➡️'
+                }[activity.type] || '📋';
+                
+                return `
+                    <div class="activity-item">
+                        <div class="activity-icon ${activity.type}">
+                            ${icon}
+                        </div>
+                        <div class="activity-content">
+                            <div class="small">${escapeHtml(activity.details)}</div>
+                            <div class="activity-time">${new Date(activity.timestamp).toLocaleString()}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /* ===========================
+           🎨 Theme Management
+           =========================== */
+        function updateThemeIcon() {
+            elements.themeToggle.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+        }
+
+        elements.themeToggle.addEventListener('click', () => {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            localStorage.setItem(STORAGE.THEME, currentTheme);
+            updateThemeIcon();
+            showToast(`Switched to ${currentTheme} mode`, 'info');
+        });
+
+        /* ===========================
+           🔐 Authentication
+           =========================== */
+        async function authenticate(pf, password) {
+            try {
+                const hashedPassword = await hashPassword(password);
+                return pf === ADMIN_PF && password === ADMIN_PW;
+            } catch (e) {
+                console.error('Authentication error:', e);
+                return false;
+            }
+        }
+
+        elements.loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const pf = document.getElementById('loginPf').value.trim();
+            const password = document.getElementById('loginPwd').value.trim();
+            
+            // Clear previous errors
+            document.getElementById('loginPfError').textContent = '';
+            document.getElementById('loginPwdError').textContent = '';
+            
+            // Validate inputs
+            let hasError = false;
+            if (!pf) {
+                document.getElementById('loginPfError').textContent = 'Admin ID is required';
+                hasError = true;
+            }
+            if (!password) {
+                document.getElementById('loginPwdError').textContent = 'Password is required';
+                hasError = true;
+            }
+            
+            if (hasError) return;
+            
+            showLoading(true);
+            
+            try {
+                const isValid = await authenticate(pf, password);
+                if (isValid) {
+                    localStorage.setItem(STORAGE.ADMIN_FLAG, '1');
+                    logAdminAction('LOGIN', { timestamp: new Date().toISOString() });
+                    mountPortal();
+                    showToast('Login successful', 'success');
+                } else {
+                    showToast('Invalid credentials', 'error');
+                    document.getElementById('loginPwdError').textContent = 'Invalid admin credentials';
+                }
+            } catch (e) {
+                showToast('Authentication error', 'error');
+                console.error('Login error:', e);
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) {
+                logAdminAction('LOGOUT', { timestamp: new Date().toISOString() });
+                localStorage.removeItem(STORAGE.ADMIN_FLAG);
+                location.reload();
+            }
+        });
+
+        /* ===========================
+           🧭 Portal Mount
+           =========================== */
+        function mountPortal() {
+            // Hide pre-login elements
+            elements.preLoginHeader.classList.add('hidden');
+            elements.authScreen.style.display = 'none';
+            
+            // Show post-login elements
+            elements.mainHeader.classList.remove('hidden');
+            elements.sidebar.classList.remove('hidden');
+            elements.main.classList.remove('hidden');
+            
+            showSection('dashboard');
+            renderFundingAccounts();
+            renderLoans();
+            renderStaff();
+            updateStats();
+            loadAmortRate();
+            initializeEventListeners();
+            updateRecentActivity();
+        }
+
+        // On page load
+    document.addEventListener('DOMContentLoaded', () => {
+    const preLoginHeader = document.getElementById('preLoginHeader');
+    const authScreen = document.getElementById('authScreen');
+    const body = document.body;
+    
+    if (localStorage.getItem(STORAGE.ADMIN_FLAG)) {
+        // Already logged in - remove login class, mount portal
+        body.classList.remove('login-screen');
+        
+        preLoginHeader.classList.add('hidden');
+        authScreen.classList.add('hidden');
+        mountPortal();
+    } else {
+        // Not logged in - set white background, position auth screen below header
+        body.classList.add('login-screen');
+        if (preLoginHeader && authScreen) {
+            authScreen.style.top = `${preLoginHeader.offsetHeight}px`;
+        }
+    }
+    
+    // Set up password validation
+    const staffPwdInput = document.getElementById('staffPwd');
+    if (staffPwdInput) {
+        staffPwdInput.addEventListener('input', () => {
+            checkPasswordStrength(staffPwdInput.value);
+        });
+    }
+});
+        /* ===========================
+           📋 Navigation
+           =========================== */
+        function showSection(name) {
+            document.querySelectorAll('main section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(name + 'Section').classList.remove('hidden');
+            
+            // Update active nav item
+            document.querySelectorAll('#sidebar li').forEach(li => {
+                li.classList.remove('active');
+                li.removeAttribute('aria-current');
+            });
+            
+            const activeNav = document.getElementById('nav' + name.charAt(0).toUpperCase() + name.slice(1));
+            if (activeNav) {
+                activeNav.classList.add('active');
+                activeNav.setAttribute('aria-current', 'page');
+            }
+            
+            // Close mobile menu
+            if (window.innerWidth <= 760) {
+                elements.sidebar.classList.remove('mobile-open');
+            }
+        }
+
+        // Sidebar navigation
+        document.querySelectorAll('#sidebar li').forEach(li => {
+            li.addEventListener('click', () => {
+                const id = li.id.replace('nav', '').toLowerCase();
+                showSection(id);
+                
+                if (id === 'dashboard') {
+                    updateStats();
+                    updateRecentActivity();
+                }
+                if (id === 'accounts') renderFundingAccounts();
+                if (id === 'staff') renderStaff();
+                if (id === 'loans') renderLoans();
+                if (id === 'activity') renderActivityFeed();
+            });
+            
+            // Keyboard navigation
+            li.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    li.click();
+                }
+            });
+        });
+
+        // Sidebar toggle
+        document.getElementById('menuToggle').addEventListener('click', () => {
+            if (window.innerWidth <= 760) {
+                elements.sidebar.classList.toggle('mobile-open');
+            } else {
+                elements.sidebar.classList.toggle('collapsed');
+            }
+        });
+
+        // Close sidebar on ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (window.innerWidth <= 760) {
+                    elements.sidebar.classList.remove('mobile-open');
+                } else if (!elements.sidebar.classList.contains('collapsed')) {
+                    elements.sidebar.classList.add('collapsed');
+                }
+            }
+        });
+
+        /* ===========================
+           💰 Funding Accounts
+           =========================== */
+        elements.addFundForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('newFundName').value.trim();
+            const balance = Number(document.getElementById('newFundBalance').value) || 0;
+            
+            if (!name) {
+                showToast('Please enter account name', 'error');
+                return;
+            }
+            
+            const list = getFundingAccounts();
+            list.push({ name, balance, createdAt: new Date().toISOString() });
+            
+            if (saveFundingAccounts(list)) {
+                elements.addFundForm.reset();
+                renderFundingAccounts();
+                updateStats();
+                showToast('Funding account added successfully', 'success');
+                logAdminAction('ADD_FUND', { name, balance });
+            } else {
+                showToast('Failed to save funding account', 'error');
+            }
+        });
+
+        function renderFundingAccounts() {
+            const container = document.getElementById('fundingAccountsContainer');
+            const list = getFundingAccounts();
+            
+            if (list.length === 0) {
+                container.innerHTML = '<p class="small text-center">No funding accounts yet.</p>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            list.forEach((account, index) => {
+                const card = document.createElement('div');
+                card.className = 'account-card';
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h4>${escapeHtml(account.name)}</h4>
+                            <p class="small">Balance: <strong>${fmtKES(account.balance)}</strong></p>
+                            <p class="small">Created: ${new Date(account.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+                            <div style="display: flex; gap: 8px;">
+                                <input id="topup_${index}" type="number" placeholder="Top-up (KES)" style="width: 140px;">
+                                <button class="btn-success topup-btn" data-index="${index}">
+                                    ➕ Top Up
+                                </button>
+                            </div>
+                            <button class="btn-danger remove-fund-btn" data-index="${index}">
+                                🗑️ Remove
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            
+            // Add event listeners
+            document.querySelectorAll('.topup-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = Number(btn.dataset.index);
+                    const input = document.getElementById(`topup_${index}`);
+                    const amount = Number(input.value) || 0;
+                    
+                    if (amount <= 0) {
+                        showToast('Please enter a valid amount', 'error');
+                        return;
+                    }
+                    
+                    const list = getFundingAccounts();
+                    list[index].balance += amount;
+                    
+                    if (saveFundingAccounts(list)) {
+                        renderFundingAccounts();
+                        updateStats();
+                        showToast(`Top-up successful: ${fmtKES(amount)}`, 'success');
+                        logAdminAction('TOPUP_FUND', { 
+                            account: list[index].name, 
+                            amount 
+                        });
+                    } else {
+                        showToast('Failed to top-up account', 'error');
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.remove-fund-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = Number(btn.dataset.index);
+                    const account = getFundingAccounts()[index];
+                    
+                    if (!confirm(`Remove funding account "${account.name}"?`)) return;
+                    
+                    const list = getFundingAccounts();
+                    list.splice(index, 1);
+                    
+                    if (saveFundingAccounts(list)) {
+                        renderFundingAccounts();
+                        updateStats();
+                        showToast('Funding account removed', 'success');
+                        logAdminAction('REMOVE_FUND', { account: account.name });
+                    } else {
+                        showToast('Failed to remove account', 'error');
+                    }
+                });
+            });
+        }
+
+        /* ===========================
+           👥 Staff Management
+           =========================== */
+        elements.staffForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                name: document.getElementById('staffName').value.trim(),
+                pfNumber: document.getElementById('staffPf').value.trim(),
+                password: document.getElementById('staffPwd').value.trim(),
+                role: document.getElementById('staffRole').value,
+                createdAt: new Date().toISOString()
+            };
+            
+            // Validate input
+            const errors = validateStaffInput(data);
+            if (errors.length > 0) {
+                showToast(errors.join(', '), 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                // Hash password
+                data.password = await hashPassword(data.password);
+                
+                const list = getStaff();
+                
+                if (editingPf) {
+                    const idx = list.findIndex(s => s.pfNumber === editingPf);
+                if (idx >= 0) {
+                     list[idx] = { ...list[idx], ...data };
+        
+                    // 🔥 NEW: Notify cashier portal about password change
+                     localStorage.setItem('staffPasswordUpdate', JSON.stringify({
+                     pfNumber: data.pfNumber,
+                    timestamp: new Date().toISOString()
+                    }));
+        
+                    logAdminAction('UPDATE_STAFF', { 
+                    name: data.name, 
+                    pfNumber: data.pfNumber 
+                  });
+                  }
+                 editingPf = null;
+
+
+                    document.getElementById('cancelEditBtn').classList.add('hidden');
+                    document.getElementById('staffMsg').textContent = '';
+                } else {
+                    if (list.some(s => s.pfNumber === data.pfNumber)) {
+                        showToast('PF number already exists', 'error');
+                        return;
+                    }
+                    list.push(data);
+                    logAdminAction('ADD_STAFF', { 
+                        name: data.name, 
+                        pfNumber: data.pfNumber,
+                        role: data.role
+                    });
+                }
+                
+                if (saveStaff(list)) {
+                    renderStaff();
+                    elements.staffForm.reset();
+                    // Reset password validation UI
+                    document.getElementById('req-length').classList.remove('requirement-met');
+                    document.getElementById('req-length').classList.add('requirement-unmet');
+                    document.getElementById('req-alphanumeric').classList.remove('requirement-met');
+                    document.getElementById('req-alphanumeric').classList.add('requirement-unmet');
+                    document.getElementById('strengthBar').className = 'password-strength-bar';
+                    document.getElementById('strengthBar').style.width = '0';
+                    document.getElementById('saveStaffBtn').disabled = true;
+                    
+                    showToast('Staff saved successfully', 'success');
+                } else {
+                    showToast('Failed to save staff', 'error');
+                }
+            } catch (e) {
+                console.error('Staff save error:', e);
+                showToast('Error saving staff', 'error');
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        document.getElementById('cancelEditBtn').addEventListener('click', () => {
+            editingPf = null;
+            elements.staffForm.reset();
+            document.getElementById('staffMsg').textContent = '';
+            document.getElementById('cancelEditBtn').classList.add('hidden');
+            
+            // Reset password validation UI
+            document.getElementById('req-length').classList.remove('requirement-met');
+            document.getElementById('req-length').classList.add('requirement-unmet');
+            document.getElementById('req-alphanumeric').classList.remove('requirement-met');
+            document.getElementById('req-alphanumeric').classList.add('requirement-unmet');
+            document.getElementById('strengthBar').className = 'password-strength-bar';
+            document.getElementById('strengthBar').style.width = '0';
+            document.getElementById('saveStaffBtn').disabled = true;
+        });
+
+        function renderStaff() {
+            const tbody = document.querySelector('#staffTable tbody');
+            const list = getStaff();
+            
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="small text-center">No staff members yet.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            
+            list.forEach((staff, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${escapeHtml(staff.name)}</td>
+                    <td>${escapeHtml(staff.pfNumber)}</td>
+                    <td>${escapeHtml(staff.role)}</td>
+                    <td>••••••••</td>
+                    <td>${new Date(staff.createdAt).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn-primary edit-staff-btn" data-index="${index}">
+                            ✏️ Edit
+                        </button>
+                        <button class="btn-danger remove-staff-btn" data-index="${index}">
+                            🗑️ Remove
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            // Add event listeners
+            document.querySelectorAll('.edit-staff-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = Number(btn.dataset.index);
+                    const staff = getStaff()[index];
+                    
+                    document.getElementById('staffName').value = staff.name;
+                    document.getElementById('staffPf').value = staff.pfNumber;
+                    document.getElementById('staffPwd').value = '' // Don't show password
+                    document.getElementById('staffRole').value = staff.role;
+                    editingPf = staff.pfNumber;
+                    document.getElementById('staffMsg').textContent = `Editing: ${staff.name}`;
+                    document.getElementById('cancelEditBtn').classList.remove('hidden');
+                    
+                    // Reset password validation UI
+                    document.getElementById('req-length').classList.remove('requirement-met');
+                    document.getElementById('req-length').classList.add('requirement-unmet');
+                    document.getElementById('req-alphanumeric').classList.remove('requirement-met');
+                    document.getElementById('req-alphanumeric').classList.add('requirement-unmet');
+                    document.getElementById('strengthBar').className = 'password-strength-bar';
+                    document.getElementById('strengthBar').style.width = '0';
+                    document.getElementById('saveStaffBtn').disabled = true;
+                    
+                    // Scroll to form
+                    elements.staffForm.scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+            
+        document.querySelectorAll('.remove-staff-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const index = Number(btn.dataset.index);
+                const staff = getStaff()[index];
+        
+        if (!confirm(`Remove staff member "${staff.name}"?`)) return;
+        
+                const list = getStaff();
+                list.splice(index, 1);
+        
+        if (saveStaff(list)) {
+            // 🔥 NEW: Force logout if this cashier is currently logged in
+            const currentCashier = localStorage.getItem('cashierLoggedIn');
+            if (currentCashier === staff.pfNumber) {
+                localStorage.setItem('staffPasswordUpdate', JSON.stringify({
+                    pfNumber: staff.pfNumber,
+                    timestamp: new Date().toISOString(),
+                    action: 'deleted'
+                }));
+            }
+            
+            renderStaff();
+            showToast('Staff member removed', 'success');
+            logAdminAction('REMOVE_STAFF', { 
+                name: staff.name, 
+                pfNumber: staff.pfNumber 
+            });
+        } else {
+            showToast('Failed to remove staff', 'error');
+        }
+    });
+});
+        }
+
+        /* ===========================
+           📊 Loans Management with Real-time Updates
+           =========================== */
+        function renderLoans() {
+            const tbody = document.querySelector('#loansTable tbody');
+            const list = getLoans();
+            
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="small text-center">No loan applications found.</td></tr>';
+                document.getElementById('loansPagination').innerHTML = '';
+                return;
+            }
+            
+            // Apply filters
+            const statusFilter = document.getElementById('filterStatus').value;
+            const typeFilter = document.getElementById('filterLoanType').value.toLowerCase();
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = list.filter(loan => {
+                const statusMatch = !statusFilter || loan.status === statusFilter;
+                const typeMatch = !typeFilter || (loan.loanType && loan.loanType.toLowerCase() === typeFilter);
+                const searchMatch = !searchTerm || 
+                    (loan.fullName && loan.fullName.toLowerCase().includes(searchTerm)) ||
+                    (loan.idNumber && loan.idNumber.toLowerCase().includes(searchTerm)) ||
+                    (loan.pfNumber && loan.pfNumber.toLowerCase().includes(searchTerm));
+                
+                return statusMatch && typeMatch && searchMatch;
+            });
+            
+            // Sort by last updated
+            filtered.sort((a, b) => new Date(b.lastUpdated || 0) - new Date(a.lastUpdated || 0));
+            
+            // Pagination
+            const totalPages = Math.ceil(filtered.length / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedList = filtered.slice(startIndex, endIndex);
+            
+            tbody.innerHTML = '';
+            
+            paginatedList.forEach(loan => {
+                const tr = document.createElement('tr');
+                tr.className = loan.status || '';
+                tr.innerHTML = `
+                    <td>${loan.applicationDate || '-'}</td>
+                    <td>${escapeHtml(loan.fullName || '-')}</td>
+                    <td>${escapeHtml(loan.idNumber || '-')}</td>
+                    <td>${escapeHtml(loan.pfNumber || '-')}</td>
+                    <td>${escapeHtml(loan.loanType || '-')}</td>
+                    <td>${fmtKES(loan.loanAmount || 0)}</td>
+                    <td>${escapeHtml(loan.status || 'Pending')}</td>
+                    <td>${escapeHtml(loan.feedback || '-')}</td>
+                    <td>${loan.lastUpdated ? new Date(loan.lastUpdated).toLocaleString() : '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            // Render pagination
+            renderPagination(totalPages, filtered.length);
+        }
+
+        function renderPagination(totalPages, totalItems) {
+            const container = document.getElementById('loansPagination');
+            
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            
+            // Previous button
+            html += `<button ${currentPage === 1 ? 'disabled' : ''} class="btn-outline" onclick="changePage(${currentPage - 1})">
+                ⬅️ Previous
+            </button>`;
+            
+            // Page numbers
+            const maxVisible = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+            
+            if (endPage - startPage < maxVisible - 1) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+            
+            if (startPage > 1) {
+                html += `<button class="btn-outline" onclick="changePage(1)">1</button>`;
+                if (startPage > 2) {
+                    html += `<span>...</span>`;
+                }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button class="${i === currentPage ? 'btn-primary' : 'btn-outline'}" onclick="changePage(${i})">${i}</button>`;
+            }
+            
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    html += `<span>...</span>`;
+                }
+                html += `<button class="btn-outline" onclick="changePage(${totalPages})">${totalPages}</button>`;
+            }
+            
+            // Next button
+            html += `<button ${currentPage === totalPages ? 'disabled' : ''} class="btn-outline" onclick="changePage(${currentPage + 1})">
+                Next ➡️
+            </button>`;
+            
+            // Info
+            const startItem = (currentPage - 1) * itemsPerPage + 1;
+            const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+            html += `<span class="pagination-info">Showing ${startItem}-${endItem} of ${totalItems}</span>`;
+            
+            container.innerHTML = html;
+        }
+
+        window.changePage = function(page) {
+            currentPage = page;
+            renderLoans();
+        };
+
+        // Search with debounce
+        const debouncedSearch = debounce(() => {
+            currentPage = 1;
+            renderLoans();
+        }, 300);
+
+        document.getElementById('searchInput').addEventListener('input', debouncedSearch);
+
+        // Filters
+        document.getElementById('filterBtn').addEventListener('click', () => {
+            currentPage = 1;
+            renderLoans();
+            showToast('Filters applied', 'info');
+        });
+
+        document.getElementById('clearFilters').addEventListener('click', () => {
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('filterLoanType').value = '';
+            document.getElementById('searchInput').value = '';
+            currentPage = 1;
+            renderLoans();
+            showToast('Filters cleared', 'info');
+        });
+
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            renderLoans();
+            updateStats();
+            showToast('Data refreshed', 'success');
+        });
+
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            const list = getLoans();
+            const exportData = list.map(loan => ({
+                Date: loan.applicationDate || '',
+                Name: loan.fullName || '',
+                'ID Number': loan.idNumber || '',
+                'PF Number': loan.pfNumber || '',
+                'Loan Type': loan.loanType || '',
+                Amount: loan.loanAmount || 0,
+                Status: loan.status || '',
+                Feedback: loan.feedback || '',
+                'Last Updated': loan.lastUpdated || ''
+            }));
+            exportToCSV(exportData, `loans_export_${new Date().toISOString().split('T')[0]}.csv`);
+        });
+
+        /* ===========================
+           📈 Dashboard Stats
+           =========================== */
+        function updateStats() {
+            const loans = getLoans();
+            const funds = getFundingAccounts();
+            
+            document.getElementById('totalLoans').textContent = loans.length;
+            document.getElementById('pendingLoans').textContent = loans.filter(l => l.status === 'pending').length;
+            document.getElementById('forwardedLoans').textContent = loans.filter(l => l.status === 'forwarded').length;
+            document.getElementById('acceptedLoans').textContent = loans.filter(l => l.status === 'accepted').length;
+            document.getElementById('dispatchedLoans').textContent = loans.filter(l => l.status === 'dispatched').length;
+            document.getElementById('returnedLoans').textContent = loans.filter(l => l.status === 'returned').length;
+            document.getElementById('rejectedLoans').textContent = loans.filter(l => l.status === 'rejected').length;
+            
+            const totalFunds = funds.reduce((sum, fund) => sum + (Number(fund.balance) || 0), 0);
+            document.getElementById('totalFunds').textContent = fmtKES(totalFunds);
+        }
+
+        /* ===========================
+           ⚙️ Settings
+           =========================== */
+        function loadAmortRate() {
+            const rate = Number(localStorage.getItem(STORAGE.AMORT) || 3.0);
+            document.getElementById('amortRate').value = rate;
+            document.getElementById('amortStatus').textContent = `Current: ${rate.toFixed(1)}%`;
+        }
+
+        document.getElementById('saveAmort').addEventListener('click', () => {
+            const rate = Number(document.getElementById('amortRate').value);
+            
+            if (isNaN(rate) || rate < 0 || rate > 100) {
+                showToast('Please enter a valid interest rate (0-100)', 'error');
+                return;
+            }
+            
+            localStorage.setItem(STORAGE.AMORT, rate);
+            document.getElementById('amortStatus').textContent = `Saved: ${rate.toFixed(1)}%`;
+            showToast('Amortization rate saved', 'success');
+            logAdminAction('UPDATE_AMORT_RATE', { rate });
+        });
+
+        // Backup data
+        document.getElementById('backupDataBtn').addEventListener('click', () => {
+            const backupData = {
+                staff: getStaff(),
+                loans: getLoans(),
+                funds: getFundingAccounts(),
+                amortRate: localStorage.getItem(STORAGE.AMORT) || '3.0',
+                activityFeed: readJSON(STORAGE.ACTIVITY_FEED, []),
+                timestamp: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(backupData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `admin_portal_backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showToast('Data backed up successfully', 'success');
+            logAdminAction('BACKUP_DATA', { timestamp: backupData.timestamp });
+        });
+
+        // Restore data
+        document.getElementById('restoreDataBtn').addEventListener('click', () => {
+            document.getElementById('restoreFileInput').click();
+        });
+
+        document.getElementById('restoreFileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const backupData = JSON.parse(event.target.result);
+                    
+                    // Validate backup data
+                    if (!backupData.staff || !backupData.loans || !backupData.funds) {
+                        throw new Error('Invalid backup file format');
+                    }
+                    
+                    // Confirm restore
+                    if (!confirm('This will replace all current data. Continue?')) return;
+                    
+                    showLoading(true);
+                    
+                    // Restore data
+                    saveStaff(backupData.staff);
+                    saveLoans(backupData.loans);
+                    saveFundingAccounts(backupData.funds);
+                    localStorage.setItem(STORAGE.AMORT, backupData.amortRate || '3.0');
+                    
+                    if (backupData.activityFeed) {
+                        writeJSON(STORAGE.ACTIVITY_FEED, backupData.activityFeed);
+                    }
+                    
+                    // Refresh UI
+                    renderStaff();
+                    renderLoans();
+                    renderFundingAccounts();
+                    updateStats();
+                    loadAmortRate();
+                    updateRecentActivity();
+                    
+                    showToast('Data restored successfully', 'success');
+                    logAdminAction('RESTORE_DATA', { 
+                        backupTimestamp: backupData.timestamp,
+                        restoredAt: new Date().toISOString()
+                    });
+                } catch (error) {
+                    showToast('Failed to restore data: ' + error.message, 'error');
+                    console.error('Restore error:', error);
+                } finally {
+                    showLoading(false);
+                    e.target.value = ''; // Reset file input
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        // View logs
+        document.getElementById('viewLogsBtn').addEventListener('click', () => {
+            const logs = readJSON(STORAGE.ADMIN_LOGS, []);
+            
+            if (logs.length === 0) {
+                showToast('No activity logs found', 'info');
+                return;
+            }
+            
+            const modal = createModal('Admin Activity Logs', `
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date/Time</th>
+                                <th>Action</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${logs.slice().reverse().map(log => `
+                                <tr>
+                                    <td>${new Date(log.timestamp).toLocaleString()}</td>
+                                    <td>${escapeHtml(log.action)}</td>
+                                    <td>${escapeHtml(JSON.stringify(log.details))}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `);
+            
+            document.body.appendChild(modal);
+        });
+
+        // Clear logs
+        document.getElementById('clearLogsBtn').addEventListener('click', () => {
+            if (!confirm('Clear all activity logs?')) return;
+            
+            localStorage.removeItem(STORAGE.ADMIN_LOGS);
+            showToast('Activity logs cleared', 'success');
+            logAdminAction('CLEAR_LOGS', { timestamp: new Date().toISOString() });
+        });
+
+        // Activity feed controls
+        document.getElementById('clearActivityBtn').addEventListener('click', () => {
+            if (!confirm('Clear all activity feed entries?')) return;
+            
+            localStorage.removeItem(STORAGE.ACTIVITY_FEED);
+            renderActivityFeed();
+            updateRecentActivity();
+            showToast('Activity feed cleared', 'success');
+        });
+
+        document.getElementById('refreshActivityBtn').addEventListener('click', () => {
+            renderActivityFeed();
+            showToast('Activity feed refreshed', 'success');
+        });
+
+        // Danger zone
+        document.getElementById('clearStaffBtn').addEventListener('click', () => {
+            const confirmation = prompt('Type "DELETE STAFF" to confirm:');
+            if (confirmation !== 'DELETE STAFF') return;
+            
+            localStorage.removeItem(STORAGE.STAFF);
+            localStorage.removeItem(STORAGE.CASHIERS);
+            localStorage.removeItem(STORAGE.ACCOUNTANTS);
+            renderStaff();
+            showToast('All staff cleared', 'warning');
+            logAdminAction('CLEAR_ALL_STAFF', { timestamp: new Date().toISOString() });
+        });
+
+        document.getElementById('clearLoansBtn').addEventListener('click', () => {
+            const confirmation = prompt('Type "DELETE LOANS" to confirm:');
+            if (confirmation !== 'DELETE LOANS') return;
+            
+            localStorage.removeItem(STORAGE.LOANS);
+            renderLoans();
+            updateStats();
+            showToast('All loans cleared', 'warning');
+            logAdminAction('CLEAR_ALL_LOANS', { timestamp: new Date().toISOString() });
+        });
+
+        document.getElementById('clearSystemBtn').addEventListener('click', () => {
+            const confirmation = prompt('Type "DELETE ALL" to confirm:');
+            if (confirmation !== 'DELETE ALL') return;
+            
+            showLoading(true);
+            
+            // Comprehensive list of all keys
+            const allKeys = [
+                'staffAccounts', 'cashiers', 'accountantAccounts', 'managers',
+                'loanApplications', 'fundingAccounts', 'amortizationRate',
+                'adminLoggedIn', 'accountant_loggedInPf', 'cashier_loggedInPf', 'loanee_loggedInId',
+                'loaneeAccount', 'loaneeAccounts', 'loaneeData',
+                'loaneeNotifications', 'loaneeLoans',
+                'AccDecisions', 'cashierNotifications', 'accountantNotifications',
+                'adminLogs', 'theme', 'activityFeed', 'loanUpdates'
+            ];
+            
+            // Remove all keys
+            allKeys.forEach(key => localStorage.removeItem(key));
+            
+            // Broadcast reset
+            localStorage.setItem('systemReset', Date.now());
+            
+            showToast('All system data cleared. Logging out...', 'warning');
+            
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        });
+
+        /* ===========================
+           🧩 Modal Helper
+           =========================== */
+        function createModal(title, content) {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>${title}</h3>
+                        <button class="close-modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        ${content}
+                    </div>
+                </div>
+            `;
+            
+            // Close modal handlers
+            modal.querySelector('.close-modal').addEventListener('click', () => {
+                modal.remove();
+            });
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+            
+            return modal;
+        }
+
+        /* ===========================
+           🔄 Real-time Sync & Auto-refresh
+              =========================== */
+
+              window.addEventListener('storage', (e) => {
+    const syncKeys = Object.values(STORAGE);
+    
+    // Check for loan updates from other portals
+    if (e.key === STORAGE.LOAN_UPDATES) {
+        const updateTime = parseInt(e.newValue);
+        if (updateTime > lastLoanUpdate) {
+            lastLoanUpdate = updateTime;
+            handleLoanUpdates();
+        }
+    }
+    
+    // 🔥 NEW: Clear password update notification after it's been processed
+    if (e.key === 'staffPasswordUpdate') {
+        setTimeout(() => {
+            localStorage.removeItem('staffPasswordUpdate');
+        }, 15000); // Clear after 15 seconds
+    }
+    
+    // General sync for other keys
+    if (!e.key || syncKeys.includes(e.key)) {
+        setTimeout(() => {
+            renderFundingAccounts();
+            renderLoans();
+            renderStaff();
+            updateStats();
+            updateRecentActivity();
+            showToast('Data synced across tabs', 'info', 1000);
+        }, 100);
+    }
+});
+
+
+        function handleLoanUpdates() {
+            const loans = getLoans();
+            const previousLoans = readJSON('previousLoansState', []);
+            
+            // Find changed loans
+            loans.forEach(loan => {
+                const prevLoan = previousLoans.find(l => l.id === loan.id);
+                if (prevLoan && prevLoan.status !== loan.status) {
+                    // Status changed, add to activity feed
+                    const details = `Loan for ${loan.fullName} changed from ${prevLoan.status} to ${loan.status}`;
+                    addActivityEntry(loan.status, loan.id, details);
+                    
+                    // Show specific notification
+                    if (loan.status === 'accepted') {
+                        showToast(`Loan accepted for ${loan.fullName}`, 'success');
+                    } else if (loan.status === 'dispatched') {
+                        showToast(`Funds dispatched for ${loan.fullName}`, 'info');
+                    } else if (loan.status === 'rejected') {
+                        showToast(`Loan rejected for ${loan.fullName}`, 'warning');
+                    }
+                }
+            });
+            
+            // Save current state for next comparison
+            writeJSON('previousLoansState', loans);
+        }
+
+        window.addEventListener('focus', () => {
+            if (localStorage.getItem(STORAGE.ADMIN_FLAG)) {
+                renderLoans();
+                renderFundingAccounts();
+                renderStaff();
+                updateStats();
+                updateRecentActivity();
+            }
+        });
+
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            if (localStorage.getItem(STORAGE.ADMIN_FLAG) && !document.hidden) {
+                updateStats();
+                handleLoanUpdates();
+            }
+        }, 30000);
+
+        // Detect system reset
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'systemReset') {
+                showToast('System was reset by administrator. You will be logged out.', 'warning');
+                setTimeout(() => {
+                    localStorage.clear();
+                    location.reload();
+                }, 2000);
+            }
+        });
+
+        /* ===========================
+           🎯 Initialize Event Listeners
+           =========================== */
+        function initializeEventListeners() {
+            // Initialize previous loan state
+            writeJSON('previousLoansState', getLoans());
+        }
+
+        /* ===========================
+           📱 Responsive Menu
+           =========================== */
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 760) {
+                elements.sidebar.classList.remove('mobile-open');
+            }
+        });
+
+        /* ===========================
+           🎨 Additional Styles
+           =========================== */
+        const additionalStyles = document.createElement('style');
+        additionalStyles.textContent = `
+            .auth-screen {
+                position: fixed;
+                left: 0;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--bg-primary);
+                z-index: 3000;
+            }
+            
+            .auth-card {
+                background: var(--bg-secondary);
+                padding: 2rem;
+                border-radius: 8px;
+                box-shadow: var(--shadow-hover);
+                width: 360px;
+                text-align: center;
+            }
+            
+            .auth-card h2 {
+                margin-bottom: 1.5rem;
+                color: var(--text-primary);
+            }
+            
+            .form-group {
+                margin-bottom: 1rem;
+                text-align: left;
+            }
+            
+            .form-group label {
+                display: block;
+                margin-bottom: 0.5rem;
+            }
+            
+            .form-group input {
+                width: 100%;
+            }
+            
+            @media (max-width: 480px) {
+                .auth-card {
+                    width: 90%;
+                    padding: 1.5rem;
+                }
+            }
+        `;
+        document.head.appendChild(additionalStyles);
+    </script>
+</body>
+</html>

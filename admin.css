@@ -1,0 +1,299 @@
+ :root {
+  --green: #4a6b4a;
+  --blue: #3a6b9a;
+  --muted: #6c757d;
+  --danger: #b33a3a;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: #f5f9f7;
+  color: #333;
+}
+
+/* ===== Header ===== */
+header {
+  background: var(--green);
+  color: #fff;
+  padding: 1rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 70px;
+  box-sizing: border-box;
+}
+
+.hamburger {
+  position: absolute;
+  left: 1rem;
+  background: transparent;
+  border: 0;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.logo-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-box img {
+  height: 36px;
+  border-radius: 6px;
+}
+
+/* ===== Sidebar ===== */
+nav {
+  position: fixed;
+  top: 70px;
+  bottom: 0;
+  left: 0;
+  width: 240px;
+  background: #2c3e50;
+  color: #fff;
+  padding: 12px;
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.08);
+  overflow: auto;
+  box-sizing: border-box;
+}
+
+nav.collapsed {
+  width: 72px;
+}
+
+nav .sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px;
+}
+
+nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+nav li {
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.3s;
+}
+
+nav li:hover {
+  background: #34495e;
+}
+
+nav li.active {
+  background: #1b91d0;
+}
+
+/* ===== Main ===== */
+.main {
+  margin-left: 260px;
+  padding: 100px 20px 40px;
+  transition: margin-left 0.25s;
+}
+
+nav.collapsed ~ .main {
+  margin-left: 86px;
+}
+
+nav.collapsed .label {
+  display: none;
+}
+
+nav.collapsed li {
+  justify-content: center;
+}
+
+nav.collapsed #logoutBtn {
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+nav li {
+  white-space: nowrap;
+}
+
+.hidden {
+  display: none !important;
+}
+
+h2 {
+  color: #6b4a3a;
+  margin: 0 0 12px;
+}
+
+/* ===== Stats Section ===== */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.stat-card {
+  background: #fff;
+  padding: 14px;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  text-align: center;
+  border-left: 6px solid var(--green);
+}
+
+.stat-number {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--green);
+}
+
+/* ===== Tables ===== */
+.table-container {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  overflow: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th,
+td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+th {
+  background: var(--blue);
+  color: #fff;
+  position: sticky;
+  top: 0;
+}
+
+tr.pending {
+  background: #fff9e6;
+}
+
+tr.forwarded {
+  background: #cce7ff;
+}
+
+tr.accepted {
+  background: #d4edda;
+}
+
+tr.dispatched {
+  background: #a7e9a7;
+}
+
+tr.returned {
+  background: #ffeaa7;
+}
+
+tr.rejected {
+  background: #f8d7da;
+}
+
+/* ===== Cards & Forms ===== */
+.account-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+input,
+select,
+button {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #dcdcdc;
+  font-size: 14px;
+}
+
+button {
+  background: var(--blue);
+  color: #fff;
+  border: 0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+button.secondary {
+  background: #6c757d;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.primary-btn {
+  background: var(--green);
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.primary-btn:hover {
+  opacity: 0.9;
+}
+
+.danger {
+  background: var(--danger);
+}
+
+.small {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+label {
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 760px) {
+  nav {
+    display: none;
+  }
+
+  .main {
+    margin-left: 0;
+    padding: 92px 12px;
+  }
+}
+
