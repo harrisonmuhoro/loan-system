@@ -1,0 +1,2879 @@
+/* ==========================================
+ENHANCED LIGHT MODE COLOR SCHEME
+========================================== */
+
+ /* ===== CSS Variables (palette.scss) ===== */
+:root {
+    /* === Palette Colors === */
+    --white:          #FEFEFEff;
+    --taupe:          #897B76ff;
+    --sage-green:     #6CAC61ff;
+    --honeydew:       #DEEFE1ff;
+    --lemon-lime:     #C9D748ff;
+    --autumn-ember:   #BB5E22ff;
+    --bright-sky:     #01B0E8ff;
+    --bright-sky-2:   #5CBAE4ff;
+    --cinnamon-wood:  #C07858ff;
+    --ivory:          #F5F7EEff;
+
+    /* === Semantic Roles (mapped to palette) === */
+    --green:       #6CAC61;
+    --blue:        #01B0E8;
+    --muted:       #897B76;
+    --danger:      #BB5E22;
+    --warning:     #C9D748;
+    --success:     #6CAC61;
+    --info:        #5CBAE4;
+    --sidebar-bg:  #C07858;
+    --bg:          #F5F7EE;
+
+    /* === Light Theme === */
+    --bg-primary:     #F5F7EE;
+    --bg-secondary:   #FEFEFE;
+    --bg-tertiary:    #DEEFE1;
+    --bg-card:        #FEFEFE;
+    --text-primary:   #2e2522;
+    --text-secondary: #897B76;
+    --text-tertiary:  #a09590;
+    --text-inverse:   #FEFEFE;
+    --border-color:   #d4cbc8;
+    --border-hover:   #bfb3af;
+    --shadow:         0 2px 10px rgba(137, 123, 118, 0.15);
+    --shadow-hover:   0 4px 20px rgba(137, 123, 118, 0.25);
+    --shadow-sm:      0 1px 3px rgba(137, 123, 118, 0.08), 0 1px 2px rgba(137, 123, 118, 0.05);
+    --shadow-md:      0 4px 6px rgba(137, 123, 118, 0.1), 0 2px 4px rgba(137, 123, 118, 0.07);
+    --shadow-lg:      0 10px 15px rgba(137, 123, 118, 0.12), 0 4px 6px rgba(137, 123, 118, 0.06);
+    --shadow-xl:      0 20px 25px rgba(137, 123, 118, 0.12), 0 10px 10px rgba(137, 123, 118, 0.05);
+    --header-bg:      linear-gradient(135deg, #5a9a52, #6CAC61);
+    --header-shadow:  0 4px 6px rgba(108, 172, 97, 0.2);
+
+    /* === Sidebar === */
+    --sidebar-hover:  rgba(255, 255, 255, 0.12);
+    --sidebar-active: rgba(255, 255, 255, 0.22);
+    --sidebar-border: rgba(255, 255, 255, 0.12);
+
+    /* === Loan Status Row Colors === */
+    --active-loan-bg:     #e4f3e1;
+    --dispatched-loan-bg: #eaf5e8;
+    --closed-loan-bg:     #FEFEFE;
+    --default-loan-bg:    #FEFEFE;
+    --schedule-row-bg:    #e4f3e1;
+
+    /* === Hover === */
+    --hover-grey: #ece8e6;
+
+    /* === Accent === */
+    --accent-primary:   #6CAC61;
+    --accent-secondary: #01B0E8;
+    --accent-tertiary:  #C9D748;
+
+    /* === Status Colors === */
+    --success-bg:     linear-gradient(135deg, #DEEFE1 0%, #c9e8cc 100%);
+    --success-text:   #2e5428;
+    --success-border: #6CAC61;
+
+    --warning-bg:     linear-gradient(135deg, #f5f8c4 0%, #edf0ac 100%);
+    --warning-text:   #5a5810;
+    --warning-border: #C9D748;
+
+    --error-bg:       linear-gradient(135deg, #fae6d8 0%, #f5d3bc 100%);
+    --error-text:     #5e2510;
+    --error-border:   #BB5E22;
+
+    --info-bg:        linear-gradient(135deg, #d0eff8 0%, #b8e4f4 100%);
+    --info-text:      #0a3a4a;
+    --info-border:    #01B0E8;
+
+    /* === Badge Colors === */
+    --badge-pending:   linear-gradient(135deg, #f5f8c4 0%, #edf0ac 100%);
+    --badge-approved:  linear-gradient(135deg, #DEEFE1 0%, #c9e8cc 100%);
+    --badge-rejected:  linear-gradient(135deg, #fae6d8 0%, #f5d3bc 100%);
+    --badge-disbursed: linear-gradient(135deg, #d0eff8 0%, #b8e4f4 100%);
+
+    /* === Card colors === */
+    --card-hover:        rgba(108, 172, 97, 0.04);
+    --card-border-hover: #6CAC61;
+
+    /* === Button Gradients === */
+    --btn-primary:        linear-gradient(135deg, #6CAC61 0%, #5a9a52 100%);
+    --btn-primary-hover:  linear-gradient(135deg, #5a9a52 0%, #4a8242 100%);
+    --btn-secondary:      linear-gradient(135deg, #897B76 0%, #7a6c68 100%);
+    --btn-secondary-hover:linear-gradient(135deg, #7a6c68 0%, #6a5e5a 100%);
+    --btn-success:        linear-gradient(135deg, #6CAC61 0%, #5a9a52 100%);
+    --btn-danger:         linear-gradient(135deg, #BB5E22 0%, #a24e18 100%);
+
+    /* === Inputs === */
+    --input-bg:           #FEFEFE;
+    --input-border:       #d4cbc8;
+    --input-focus:        #6CAC61;
+    --input-focus-shadow: 0 0 0 3px rgba(108, 172, 97, 0.18);
+
+    /* === Loan Card === */
+    --loan-card-header: linear-gradient(135deg, #6CAC61 0%, #5a9a52 100%);
+    --loan-card-shadow: 0 4px 15px rgba(108, 172, 97, 0.12);
+
+    /* === Table === */
+    --table-header:    linear-gradient(135deg, #6CAC61 0%, #5a9a52 100%);
+    --table-row-hover: rgba(108, 172, 97, 0.06);
+    --table-border:    #d4cbc8;
+
+    /* === Timeline === */
+    --timeline-line: linear-gradient(180deg, #6CAC61 0%, #5CBAE4 100%);
+    --timeline-dot:  #6CAC61;
+    --timeline-bg:   #F5F7EE;
+
+    /* === Scrollbar === */
+    --scrollbar-track:       #DEEFE1;
+    --scrollbar-thumb:       #C07858;
+    --scrollbar-thumb-hover: #897B76;
+}
+
+ /* Apply background gradient to body */
+ body {
+     background: var(--bg-primary);
+ }
+
+ /* Enhanced card styling */
+ .loan-history-card,
+ .info-box,
+ .calculator-inputs,
+ .calculator-summary,
+ .eligibility-section,
+ .payment-schedule-section,
+ .payment-history-section {
+     background: var(--bg-card);
+     box-shadow: var(--shadow-md);
+     border: 1px solid var(--border-color);
+ }
+
+ .loan-history-card:hover {
+     box-shadow: var(--shadow-hover);
+     border-color: var(--card-border-hover);
+ }
+
+ /* Header enhancement */
+ header {
+     background: var(--header-bg);
+     box-shadow: var(--header-shadow);
+ }
+
+ /* Button enhancements */
+ button {
+     background: var(--btn-primary);
+     box-shadow: var(--shadow-sm);
+     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+ }
+
+ button:hover {
+     background: var(--btn-primary-hover);
+     box-shadow: var(--shadow-md);
+     transform: translateY(-1px);
+ }
+
+ button.secondary {
+     background: var(--btn-secondary);
+ }
+
+ button.secondary:hover {
+     background: var(--btn-secondary-hover);
+ }
+
+ /* Input field enhancements */
+ input:focus,
+ select:focus,
+ textarea:focus {
+     border-color: var(--input-focus);
+     box-shadow: var(--input-focus-shadow);
+ }
+
+ /* Table enhancements */
+ th {
+     background: var(--table-header);
+ }
+
+ tr:hover {
+     background: var(--table-row-hover);
+ }
+
+ /* Timeline enhancements */
+ .timeline::before {
+     background: var(--timeline-line);
+ }
+
+ .timeline-dot {
+     background: var(--timeline-dot);
+     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+ }
+
+ /* Status badge enhancements */
+ .status-badge {
+     box-shadow: var(--shadow-sm);
+     font-weight: 600;
+ }
+
+ /* Scrollbar styling */
+ ::-webkit-scrollbar {
+     width: 10px;
+     height: 10px;
+ }
+
+ ::-webkit-scrollbar-track {
+     background: var(--scrollbar-track);
+     border-radius: 5px;
+ }
+
+ ::-webkit-scrollbar-thumb {
+     background: var(--scrollbar-thumb);
+     border-radius: 5px;
+ }
+
+ ::-webkit-scrollbar-thumb:hover {
+     background: var(--scrollbar-thumb-hover);
+ }
+
+ /* ==========================================
+ENHANCED DARK MODE COLOR SCHEME
+========================================== */
+
+ 
+[data-theme="dark"] {
+    /* Backgrounds - warm dark palette tones */
+    --bg-primary:   #1e1a17;
+    --bg-secondary: #2a2420;
+    --bg-tertiary:  #362e28;
+    --bg-card:      #2a2420;
+    --text-primary:   #F5F7EE;
+    --text-secondary: #C0B8B5;
+    --text-tertiary:  #a09590;
+    --text-inverse:   #1e1a17;
+    --border-color: #4a3e38;
+    --border-hover: #5a4e48;
+    --shadow:       0 2px 10px rgba(0, 0, 0, 0.4);
+    --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.6);
+    --shadow-sm:    0 1px 3px rgba(0, 0, 0, 0.2);
+    --shadow-md:    0 4px 6px rgba(0, 0, 0, 0.3);
+    --shadow-lg:    0 10px 15px rgba(0, 0, 0, 0.35);
+    --shadow-xl:    0 20px 25px rgba(0, 0, 0, 0.4);
+    --header-bg:    linear-gradient(135deg, #2a3d28, #3a5435);
+    --header-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+    --sidebar-bg:   #1e1a17;
+
+    /* Semantic overrides for dark */
+    --green:   #8DC882;
+    --blue:    #5CBAE4;
+    --danger:  #D4793A;
+    --warning: #D9E04A;
+    --info:    #7CCEEE;
+
+    /* Status rows */
+    --active-loan-bg:     #0d2e38;
+    --dispatched-loan-bg: #1a3d20;
+    --closed-loan-bg:     #2a2420;
+    --default-loan-bg:    #2e2622;
+    --schedule-row-bg:    #0d2e38;
+    --hover-grey:         #3e3530;
+
+    /* Card & input */
+    --card-hover:        rgba(141, 200, 130, 0.05);
+    --card-border-hover: #8DC882;
+    --input-bg:          #2a2420;
+    --input-border:      #4a3e38;
+    --input-focus:       #8DC882;
+    --input-focus-shadow: 0 0 0 3px rgba(141, 200, 130, 0.2);
+
+    /* Buttons */
+    --btn-primary:        linear-gradient(135deg, #3a5435, #4d6e46);
+    --btn-primary-hover:  linear-gradient(135deg, #4d6e46, #5a7a50);
+    --btn-secondary:      linear-gradient(135deg, #4a3e38, #5a4e48);
+    --btn-secondary-hover:linear-gradient(135deg, #5a4e48, #6a5e58);
+    --btn-success:        linear-gradient(135deg, #3a5435, #4d6e46);
+    --btn-danger:         linear-gradient(135deg, #BB5E22, #d06a2a);
+
+    /* Table */
+    --table-header:    linear-gradient(135deg, #2a3d28, #3a5435);
+    --table-row-hover: rgba(141, 200, 130, 0.07);
+    --table-border:    #4a3e38;
+
+    /* Status colors dark */
+    --success-bg:     linear-gradient(135deg, #1a3d20 0%, #1e4a25 100%);
+    --success-text:   #8DC882;
+    --success-border: #4d6e46;
+    --warning-bg:     linear-gradient(135deg, #2e2c0a 0%, #383510 100%);
+    --warning-text:   #D9E04A;
+    --warning-border: #8a8a1a;
+    --error-bg:       linear-gradient(135deg, #3d1e0d 0%, #4a2510 100%);
+    --error-text:     #D4793A;
+    --error-border:   #BB5E22;
+    --info-bg:        linear-gradient(135deg, #0a2030 0%, #0d2838 100%);
+    --info-text:      #7CCEEE;
+    --info-border:    #5CBAE4;
+
+    /* Badges */
+    --badge-pending:   linear-gradient(135deg, #2e2c0a, #383510);
+    --badge-approved:  linear-gradient(135deg, #1a3d20, #1e4a25);
+    --badge-rejected:  linear-gradient(135deg, #3d1e0d, #4a2510);
+    --badge-disbursed: linear-gradient(135deg, #0a2030, #0d2838);
+
+    /* Loan card */
+    --loan-card-header: linear-gradient(135deg, #2a3d28, #3a5435);
+    --loan-card-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+
+    /* Timeline */
+    --timeline-line: linear-gradient(180deg, #8DC882 0%, #5CBAE4 100%);
+    --timeline-dot:  #8DC882;
+    --timeline-bg:   #2a2420;
+
+    /* Scrollbar */
+    --scrollbar-track:       #2a2420;
+    --scrollbar-thumb:       #4a3e38;
+    --scrollbar-thumb-hover: #5a4e48;
+
+    /* Accent */
+    --accent-primary:   #8DC882;
+    --accent-secondary: #5CBAE4;
+    --accent-tertiary:  #D9E04A;
+}
+
+ /* Apply background gradient to body */
+ [data-theme="dark"] body {
+     background: var(--bg-primary);
+ }
+
+ /* Fix main content background */
+ [data-theme="dark"] .main-content {
+     background: var(--bg-secondary);
+ }
+
+ [data-theme="dark"] main {
+     background: var(--bg-secondary);
+     color: var(--text-primary);
+ }
+
+ /* Fix all headings in dark mode */
+ [data-theme="dark"] h2 {
+     color: #60a5fa;
+ }
+
+ [data-theme="dark"] h2::after {
+     background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+ }
+
+ [data-theme="dark"] h3 {
+     color: #cbd5e0;
+ }
+
+ [data-theme="dark"] h4 {
+     color: #60a5fa;
+ }
+
+ /* Fix labels in dark mode */
+ [data-theme="dark"] label {
+     color: #cbd5e0;
+ }
+
+ /* Fix info boxes */
+ [data-theme="dark"] .info-box {
+     background: var(--bg-tertiary);
+     border-color: #60a5fa;
+     color: var(--text-primary);
+ }
+
+ [data-theme="dark"] .info-box strong {
+     color: #60a5fa;
+ }
+
+ /* Fix summary cards */
+ [data-theme="dark"] .summary-card {
+     background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+     border: 1px solid var(--border-color);
+ }
+
+ [data-theme="dark"] .summary-card h4 {
+     color: #60a5fa;
+ }
+
+ [data-theme="dark"] .summary-card .amount {
+     color: var(--text-primary);
+ }
+
+ [data-theme="dark"] .summary-item {
+     color: var(--text-primary);
+ }
+
+ [data-theme="dark"] .summary-item span {
+     color: var(--text-secondary);
+ }
+
+ [data-theme="dark"] .summary-item strong {
+     color: var(--text-primary);
+ }
+
+ /* Fix payment summary display */
+ [data-theme="dark"] .payment-summary {
+     color: var(--text-primary);
+ }
+
+ [data-theme="dark"] .payment-summary .summary-card {
+     background: var(--bg-tertiary);
+ }
+
+ /* Fix filter groups */
+ [data-theme="dark"] .filter-group label {
+     color: #cbd5e0;
+ }
+
+ [data-theme="dark"] .payment-filters {
+     background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+     border-color: var(--border-color);
+ }
+
+ [data-theme="dark"] .schedule-filters {
+     background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+     border-color: var(--border-color);
+ }
+
+ /* Fix loan details display */
+ [data-theme="dark"] .loan-details>div {
+     background: var(--bg-tertiary);
+     color: var(--text-primary);
+ }
+
+ [data-theme="dark"] .loan-details>div:hover {
+     background: #475569;
+ }
+
+ [data-theme="dark"] .loan-details strong {
+     color: #60a5fa;
+ }
+
+ /* Fix calculator sections */
+ [data-theme="dark"] .calculator-inputs,
+ [data-theme="dark"] .calculator-summary {
+     background: var(--bg-tertiary);
+     border-color: var(--border-color);
+ }
+
+ [data-theme="dark"] .summary-item {
+     border-bottom-color: var(--border-color);
+ }
+
+ [data-theme="dark"] .summary-item:hover {
+     background: rgba(96, 165, 250, 0.1);
+ }
+
+ [data-theme="dark"] .summary-item:last-child {
+     background: rgba(96, 165, 250, 0.15);
+     color: #60a5fa;
+ }
+
+ /* Fix breakdown items */
+ [data-theme="dark"] .calculation-breakdown {
+     background: var(--bg-secondary);
+     border-color: var(--border-color);
+ }
+
+ [data-theme="dark"] .breakdown-item {
+     border-bottom-color: var(--border-color);
+     color: var(--text-primary);
+ }
+
+ [data-theme="dark"] .breakdown-item:hover {
+     background: var(--bg-tertiary);
+ }
+
+ [data-theme="dark"] .breakdown-total {
+     background: linear-gradient(135deg, #334155 0%, #475569 100%);
+     color: #60a5fa;
+ }
+
+ /* Fix detail rows in loan cards */
+ [data-theme="dark"] .detail-row {
+     color: var(--text-primary);
+ }
+
+ [data-theme="dark"] .detail-label {
+     color: #94a3b8;
+ }
+
+ [data-theme="dark"] .detail-value {
+     color: #f1f5f9;
+ }
+
+ [data-theme="dark"] .amount-highlight {
+     color: #6ee7b7;
+ }
+
+ /* Fix section titles */
+ [data-theme="dark"] .section-title {
+     color: #60a5fa;
+ }
+
+ [data-theme="dark"] .section-title::before {
+     background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+ }
+
+ /* Fix timeline elements */
+ [data-theme="dark"] .timeline-content {
+     background: var(--bg-tertiary);
+ }
+
+ [data-theme="dark"] .timeline-content:hover {
+     background: #475569;
+ }
+
+ [data-theme="dark"] .timeline-label {
+     color: var(--text-primary);
+ }
+
+ [data-theme="dark"] .timeline-date {
+     color: var(--text-secondary);
+ }
+
+ /* Fix feedback boxes */
+ [data-theme="dark"] .feedback-box {
+     background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
+     color: #fcd34d;
+     border-left-color: #fbbf24;
+ }
+
+ [data-theme="dark"] .warning-text {
+     background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
+     color: #fcd34d;
+     border-left-color: #fbbf24;
+ }
+
+ /* Fix password section */
+ [data-theme="dark"] .password-section {
+     background: var(--bg-tertiary);
+     border-color: var(--border-color);
+ }
+
+ [data-theme="dark"] .password-requirements {
+     background: var(--bg-secondary);
+     color: var(--text-secondary);
+ }
+
+ /* Fix table text visibility */
+ [data-theme="dark"] .payment-table th {
+     color: #fff;
+ }
+
+ [data-theme="dark"] .payment-table td {
+     color: var(--text-primary);
+ }
+
+ [data-theme="dark"] .schedule-table th {
+     color: #fff;
+ }
+
+ [data-theme="dark"] .schedule-table td {
+     color: var(--text-primary);
+ }
+
+ /* Fix loan badges in dark mode */
+ [data-theme="dark"] .loan-badge {
+     font-weight: 700;
+ }
+
+ [data-theme="dark"] .loan-badge.mortgage {
+     background-color: #1e3a8a;
+     color: #93c5fd;
+ }
+
+ [data-theme="dark"] .loan-badge.car {
+     background-color: #92400e;
+     color: #fed7aa;
+ }
+
+ /* Fix payment source badges */
+ [data-theme="dark"] .payment-source-badge {
+     font-weight: 700;
+ }
+
+ [data-theme="dark"] .payment-source-badge.salary {
+     background-color: #064e3b;
+     color: #6ee7b7;
+ }
+
+ [data-theme="dark"] .payment-source-badge.bank {
+     background-color: #1e3a8a;
+     color: #93c5fd;
+ }
+
+ [data-theme="dark"] .payment-source-badge.cash {
+     background-color: #78350f;
+     color: #fcd34d;
+ }
+
+ /* Fix no-payments message */
+ [data-theme="dark"] .no-payments {
+     color: var(--text-secondary);
+ }
+
+ /* Fix schedule notice */
+ [data-theme="dark"] .schedule-notice {
+     background: linear-gradient(135deg, #0c4a6e 0%, #075985 100%);
+     color: #7dd3fc;
+     border-left-color: #38bdf8;
+ }
+
+ /* Fix schedule info */
+ [data-theme="dark"] .schedule-info {
+     color: var(--text-secondary);
+ }
+
+ /* Fix schedule headers */
+ [data-theme="dark"] .schedule-header {
+     color: var(--text-primary);
+ }
+
+ /* Fix status spans inside table cells */
+ [data-theme="dark"] .status {
+     font-weight: 600;
+ }
+
+ [data-theme="dark"] .status.paid {
+     background: #064e3b;
+     color: #6ee7b7;
+     padding: 4px 8px;
+     border-radius: 4px;
+ }
+
+ [data-theme="dark"] .status.pending {
+     background: #78350f;
+     color: #fcd34d;
+     padding: 4px 8px;
+     border-radius: 4px;
+ }
+
+ [data-theme="dark"] .status.overdue {
+     background: #7f1d1d;
+     color: #fca5a5;
+     padding: 4px 8px;
+     border-radius: 4px;
+ }
+
+ /* Fix div text content in tables and sections */
+ [data-theme="dark"] .payment-history-section div,
+ [data-theme="dark"] .payment-schedule-section div {
+     color: var(--text-primary);
+ }
+
+ [data-theme="dark"] .payment-history-section div strong,
+ [data-theme="dark"] .payment-schedule-section div strong {
+     color: #60a5fa;
+ }
+
+ /* Fix general div text in main content */
+ [data-theme="dark"] main div {
+     color: var(--text-primary);
+ }
+
+ [data-theme="dark"] main div strong {
+     color: #60a5fa;
+ }
+
+ /* Fix paragraph text */
+ [data-theme="dark"] p {
+     color: var(--text-secondary);
+ }
+
+ /* Fix small text */
+ [data-theme="dark"] small {
+     color: var(--text-tertiary);
+ }
+
+ /* Fix schedule loan section headers */
+ [data-theme="dark"] .schedule-loan-section h3 {
+     color: #60a5fa;
+     border-bottom-color: #60a5fa;
+ }
+
+ [data-theme="dark"] .schedule-loan-section p {
+     color: var(--text-secondary);
+ }
+
+ [data-theme="dark"] .schedule-loan-section strong {
+     color: #60a5fa;
+ }
+
+ /* Fix no-data message */
+ [data-theme="dark"] .no-data {
+     color: var(--text-secondary);
+     font-style: italic;
+ }
+
+ /* Fix loading message */
+ [data-theme="dark"] .loading {
+     color: var(--text-secondary);
+ }
+
+ /* Fix error message */
+ [data-theme="dark"] .error {
+     background: var(--error-bg);
+     color: var(--error-text);
+     border-left-color: var(--error-border);
+ }
+
+ /* Fix success message */
+ [data-theme="dark"] .success {
+     background: var(--success-bg);
+     color: var(--success-text);
+     border-left-color: var(--success-border);
+ }
+
+ /* Fix all inline styles that might override */
+ [data-theme="dark"] div[style*="color:#6c757d"],
+ [data-theme="dark"] div[style*="color: #6c757d"] {
+     color: var(--text-secondary) !important;
+ }
+
+ [data-theme="dark"] div[style*="color:#2c3e50"],
+ [data-theme="dark"] div[style*="color: #2c3e50"] {
+     color: var(--text-primary) !important;
+ }
+
+ [data-theme="dark"] h4[style*="color:#4a6b4a"],
+ [data-theme="dark"] h4[style*="color: #4a6b4a"] {
+     color: #60a5fa !important;
+ }
+
+ /* Fix schedule loan section specific styling */
+ [data-theme="dark"] .schedule-loan-section {
+     margin-bottom: 40px;
+ }
+
+ [data-theme="dark"] .schedule-loan-section h3 small {
+     color: #94a3b8;
+ }
+
+ /* Improve overall text readability */
+ [data-theme="dark"] {
+     text-rendering: optimizeLegibility;
+     -webkit-font-smoothing: antialiased;
+     -moz-osx-font-smoothing: grayscale;
+ }
+
+ /* Fix any remaining invisible text on hover */
+ [data-theme="dark"] *:hover {
+     color: inherit;
+ }
+
+ /* Ensure buttons have proper text color */
+ [data-theme="dark"] button {
+     color: white;
+ }
+
+ [data-theme="dark"] button:hover {
+     color: white;
+ }
+
+ /* Fix select dropdowns */
+ [data-theme="dark"] select option {
+     background: var(--bg-secondary);
+     color: var(--text-primary);
+ }
+
+ /* Enhanced card styling with glow */
+ [data-theme="dark"] .loan-history-card,
+ [data-theme="dark"] .info-box,
+ [data-theme="dark"] .calculator-inputs,
+ [data-theme="dark"] .calculator-summary,
+ [data-theme="dark"] .eligibility-section,
+ [data-theme="dark"] .payment-schedule-section,
+ [data-theme="dark"] .payment-history-section {
+     background: var(--bg-card);
+     box-shadow: var(--shadow-md);
+     border: 1px solid var(--border-color);
+ }
+
+ [data-theme="dark"] .loan-history-card:hover {
+     box-shadow: var(--shadow-hover), var(--glow-primary);
+     border-color: var(--card-border-hover);
+     transform: translateY(-2px);
+ }
+
+ /* Header enhancement */
+ [data-theme="dark"] header {
+     background: var(--header-bg);
+     box-shadow: var(--header-shadow), var(--glow-primary);
+ }
+
+ /* Button enhancements with glow */
+ [data-theme="dark"] button {
+     background: var(--btn-primary);
+     box-shadow: var(--shadow-sm);
+     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+ }
+
+ [data-theme="dark"] button:hover {
+     background: var(--btn-primary-hover);
+     box-shadow: var(--shadow-md), var(--glow-primary);
+     transform: translateY(-1px);
+ }
+
+ [data-theme="dark"] button.secondary {
+     background: var(--btn-secondary);
+ }
+
+ [data-theme="dark"] button.secondary:hover {
+     background: var(--btn-secondary-hover);
+ }
+
+ /* Input field enhancements with glow */
+ [data-theme="dark"] input,
+ [data-theme="dark"] select,
+ [data-theme="dark"] textarea {
+     background: var(--input-bg);
+     color: var(--text-primary);
+     border-color: var(--border-color);
+ }
+
+ [data-theme="dark"] input:focus,
+ [data-theme="dark"] select:focus,
+ [data-theme="dark"] textarea:focus {
+     border-color: var(--input-focus);
+     box-shadow: var(--input-focus-shadow), var(--glow-primary);
+ }
+
+ /* Table enhancements */
+ [data-theme="dark"] table {
+     background: var(--bg-secondary);
+     color: var(--text-primary);
+ }
+
+ [data-theme="dark"] th {
+     background: var(--table-header);
+     border-bottom-color: var(--border-color);
+ }
+
+ [data-theme="dark"] td {
+     border-color: var(--border-color);
+ }
+
+ [data-theme="dark"] tr:hover {
+     background: var(--table-row-hover);
+ }
+
+ /* Timeline enhancements with glow */
+ [data-theme="dark"] .timeline::before {
+     background: var(--timeline-line);
+     box-shadow: var(--glow-primary);
+ }
+
+ [data-theme="dark"] .timeline-dot {
+     background: var(--timeline-dot);
+     box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.3), var(--glow-primary);
+ }
+
+ /* Status badge enhancements with glow */
+ [data-theme="dark"] .status-badge {
+     box-shadow: var(--shadow-sm);
+     font-weight: 600;
+ }
+
+ [data-theme="dark"] .eligible {
+     box-shadow: var(--shadow-sm), var(--glow-success);
+ }
+
+ [data-theme="dark"] .not-eligible {
+     box-shadow: var(--shadow-sm), var(--glow-danger);
+ }
+
+ /* Success/Error messages with glow */
+ [data-theme="dark"] .success {
+     box-shadow: var(--glow-success);
+ }
+
+ [data-theme="dark"] .error {
+     box-shadow: var(--glow-danger);
+ }
+
+ /* Scrollbar styling */
+ [data-theme="dark"] ::-webkit-scrollbar {
+     width: 10px;
+     height: 10px;
+ }
+
+ [data-theme="dark"] ::-webkit-scrollbar-track {
+     background: var(--scrollbar-track);
+     border-radius: 5px;
+ }
+
+ [data-theme="dark"] ::-webkit-scrollbar-thumb {
+     background: var(--scrollbar-thumb);
+     border-radius: 5px;
+ }
+
+ [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+     background: var(--scrollbar-thumb-hover);
+ }
+
+ /* Loan card header with enhanced gradient */
+ [data-theme="dark"] .loan-card-header {
+     background: var(--loan-card-header);
+     box-shadow: 0 2px 10px rgba(96, 165, 250, 0.2);
+ }
+
+ /* Status-specific row colors with better contrast */
+ [data-theme="dark"] tr.pending {
+     background: rgba(146, 64, 14, 0.2);
+ }
+
+ [data-theme="dark"] tr.forwarded {
+     background: rgba(7, 89, 133, 0.2);
+ }
+
+ [data-theme="dark"] tr.accepted,
+ [data-theme="dark"] tr.dispatched,
+ [data-theme="dark"] tr.active {
+     background: rgba(6, 95, 70, 0.2);
+ }
+
+ [data-theme="dark"] tr.returned {
+     background: rgba(146, 64, 14, 0.25);
+ }
+
+ [data-theme="dark"] tr.rejected {
+     background: rgba(153, 27, 27, 0.2);
+ }
+
+ /* Theme selector enhancement */
+ [data-theme="dark"] .theme-selector {
+     background: rgba(96, 165, 250, 0.1);
+     border: 1px solid rgba(96, 165, 250, 0.2);
+ }
+
+ [data-theme="dark"] .theme-option:hover {
+     background: rgba(96, 165, 250, 0.15);
+ }
+
+ [data-theme="dark"] .theme-option.active {
+     background: rgba(96, 165, 250, 0.25);
+     box-shadow: var(--glow-primary);
+ }
+
+ /* Enhanced dropdown menu */
+ [data-theme="dark"] .dropdown-menu {
+     background: var(--bg-secondary);
+     border: 1px solid var(--border-color);
+     box-shadow: var(--shadow-lg), var(--glow-primary);
+ }
+
+ [data-theme="dark"] .dropdown-item:hover {
+     background: var(--card-hover);
+ }
+
+ /* Toast notifications with glow */
+ [data-theme="dark"] .toast {
+     background: var(--bg-secondary);
+     border: 1px solid var(--border-color);
+     box-shadow: var(--shadow-xl), var(--glow-primary);
+ }
+
+ [data-theme="dark"] .toast.success {
+     box-shadow: var(--shadow-xl), var(--glow-success);
+ }
+
+ [data-theme="dark"] .toast.error {
+     box-shadow: var(--shadow-xl), var(--glow-danger);
+ }
+
+ /* ===== Global Styles & Reset ===== */
+ * {
+     box-sizing: border-box;
+ }
+
+ body {
+     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+     background: var(--bg-primary);
+     color: var(--text-primary);
+     transition: background-color 0.3s, color 0.3s;
+     margin: 0;
+     padding: 0;
+     line-height: 1.6;
+ }
+
+ /* ===== Theme Selector Styles ===== */
+ .theme-selector {
+     display: flex;
+     align-items: center;
+     gap: 8px;
+     background: rgba(255, 255, 255, 0.1);
+     padding: 5px 12px;
+     border-radius: 20px;
+     justify-content: space-between;
+     width: auto;
+ }
+
+ .theme-option {
+     display: flex;
+     flex-direction: row; justify-content: center;
+     align-items: center;
+     background: transparent;
+     border: none;
+     color: var(--text-inverse);
+     cursor: pointer;
+     padding: 5px;
+     border-radius: 4px;
+     transition: all 0.2s;
+     flex: 1;
+ }
+
+ .theme-option:hover {
+     background-color: rgba(255, 255, 255, 0.1);
+ }
+
+ .theme-option.active {
+     background-color: rgba(255, 255, 255, 0.2);
+ }
+
+ .theme-preview {
+     width: 20px;
+     height: 20px;
+     border-radius: 50%;
+     margin-bottom: 3px;
+     border: 2px solid rgba(255, 255, 255, 0.5);
+ }
+
+ .light-theme {
+     background: linear-gradient(135deg, #f5f9f7, #ffffff);
+ }
+
+ .dark-theme {
+     background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+ }
+
+ /* ===== Header ===== */
+ header {
+     background: linear-gradient(135deg, #4a6b4a, #5a7b5a);
+     color: white;
+     padding: 1rem;
+     text-align: center;
+     position: fixed;
+     width: 100%;
+     top: 0;
+     z-index: 10;
+     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+     align-items: center;
+ }
+
+ .header-container {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     gap: 1rem;
+     position: relative;
+ }
+
+ .logo {
+     height: 60px;
+     width: auto;
+     object-fit: contain;
+ }
+
+ h1 {
+     margin: 0;
+     font-size: 1.8rem;
+     font-weight: 600;
+ }
+
+ /* Hamburger Menu Styles */
+ .hamburger {
+     position: absolute;
+     left: 20px;
+     top: 50%;
+     transform: translateY(-50%);
+     display: flex;
+     flex-direction: column;
+     justify-content: space-around;
+     width: 30px;
+     height: 25px;
+     background: transparent;
+     border: none;
+     cursor: pointer;
+     padding: 0;
+     z-index: 11;
+ }
+
+ .hamburger span {
+     width: 30px;
+     height: 3px;
+     background: white;
+     border-radius: 10px;
+     transition: all 0.3s linear;
+     position: relative;
+     transform-origin: 1px;
+ }
+
+ /* Profile Badge Styles */
+ .profile-badge {
+     position: absolute;
+     right: 20px;
+     top: 50%;
+     transform: translateY(-50%);
+     display: flex;
+     align-items: center;
+     background-color: rgba(255, 255, 255, 0.1);
+     border-radius: 30px;
+     padding: 5px 15px;
+ }
+
+ .profile-info {
+     display: flex;
+     align-items: center;
+     margin-right: 15px;
+ }
+
+ .profile-avatar {
+     margin-right: 10px;
+ }
+
+ .avatar-img {
+     width: 40px;
+     height: 40px;
+     border-radius: 50%;
+     border: 2px solid #fff;
+ }
+
+ .profile-details {
+     color: white;
+ }
+
+ .profile-name {
+     font-weight: bold;
+     font-size: 0.9rem;
+ }
+
+ .profile-role {
+     font-size: 0.8rem;
+     opacity: 0.8;
+ }
+
+ /* Sidebar Styles */
+ #sidebar {
+     background: #6b4a3a;
+     width: 240px;
+     padding-top: 100px;
+     box-sizing: border-box;
+     color: white;
+     display: flex;
+     flex-direction: column;
+     position: fixed;
+     top: 0;
+     bottom: 0;
+     left: 0;
+     overflow-y: auto;
+     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+     transform: translateX(0);
+     transition: all 0.3s ease;
+     z-index: 5;
+ }
+
+ #sidebar.open {
+     transform: translateX(0);
+ }
+
+ #sidebar.collapsed {
+     width: 70px;
+ }
+
+ #sidebar.collapsed .sidebar-logo {
+     padding: 15px 10px;
+     justify-content: center;
+ }
+
+ #sidebar.collapsed .sidebar-logo-text {
+     display: none;
+ }
+
+ #sidebar.collapsed .sidebar-logo img {
+     height: 40px;
+ }
+
+ #sidebar.collapsed button {
+     padding: 1rem;
+     justify-content: center;
+     text-align: center;
+ }
+
+ #sidebar.collapsed button .button-text {
+     display: none;
+ }
+
+ #sidebar.collapsed button .button-icon {
+     font-size: 1.2rem;
+     margin-right: 0;
+ }
+
+ #sidebar.collapsed button.active::before {
+     display: none;
+ }
+
+ #sidebar.collapsed #logoutBtn {
+     padding: 0.8rem;
+     justify-content: center;
+ }
+
+ #sidebar.collapsed #logoutBtn .logout-text {
+     display: none;
+ }
+
+ .sidebar-logo {
+     display: flex;
+     align-items: center;
+     padding: 20px 15px;
+     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+     margin-bottom: 10px;
+ }
+
+ .sidebar-logo img {
+     height: 50px;
+     width: auto;
+     object-fit: contain;
+     margin-right: 10px;
+ }
+
+ .sidebar-logo-text {
+     font-size: 1.2rem;
+     font-weight: bold;
+     color: white;
+ }
+
+ #sidebar button {
+     background: transparent;
+     border: none;
+     color: white;
+     padding: 1rem 1.5rem;
+     text-align: left;
+     cursor: pointer;
+     font-size: 0.95rem;
+     border-left: 5px solid transparent;
+     transition: all 0.3s ease;
+     position: relative;
+     display: flex;
+     align-items: center;
+ }
+
+ #sidebar button:hover {
+     background: #5a3a2a;
+     padding-left: 2rem;
+ }
+
+ #sidebar button.active {
+     background: #5a3a2a;
+     border-left: 5px solid #3a6b9a;
+     font-weight: 600;
+ }
+
+ #sidebar button.active::before {
+     content: '▶';
+     position: absolute;
+     left: 10px;
+ }
+
+ #sidebar button#logoutBtn {
+     margin-top: auto;
+     background: #c0392b;
+ }
+
+ #sidebar button#logoutBtn:hover {
+     background: #a0281b;
+ }
+
+ #sidebar.collapsed button#logoutBtn .button-icon {
+     font-size: 1.2rem;
+ }
+
+ .button-icon {
+     margin-right: 10px;
+     font-size: 1rem;
+     display: inline-block;
+     width: 20px;
+     text-align: center;
+ }
+
+ .button-text {
+     flex-grow: 1;
+ }
+
+ /* Tooltip Styles */
+ .tooltip {
+     position: relative;
+ }
+
+ .tooltip .tooltiptext {
+     visibility: hidden;
+     width: 120px;
+     background-color: #555;
+     color: #fff;
+     text-align: center;
+     border-radius: 6px;
+     padding: 5px 0;
+     position: absolute;
+     z-index: 1;
+     bottom: 125%;
+     left: 50%;
+     margin-left: -60px;
+     opacity: 0;
+     transition: opacity 0.3s;
+     font-size: 0.8rem;
+ }
+
+ .tooltip:hover .tooltiptext {
+     visibility: visible;
+     opacity: 1;
+ }
+
+ /* ===== Main Content ===== */
+ .main-content {
+     margin-left: 240px;
+     margin-top: 80px;
+     /* Account for fixed header */
+     padding: 2rem;
+     min-height: calc(100vh - 80px);
+     transition: margin-left 0.3s ease;
+     background: var(--bg-secondary);
+     box-shadow: var(--shadow);
+ }
+
+ .main-content.full-width {
+     margin-left: 0;
+ }
+
+ .main-content.sidebar-collapsed {
+     margin-left: 90px;
+ }
+
+ .main-content.sidebar-open {
+     margin-left: 240px;
+ }
+
+ main {
+     max-width: 1200px;
+     margin: 0 auto;
+     background: #fff;
+     border-radius: 12px;
+     padding: 30px;
+     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+     animation: fadeInUp 0.5s ease;
+ }
+
+ @keyframes fadeInUp {
+     from {
+         opacity: 0;
+         transform: translateY(20px);
+     }
+
+     to {
+         opacity: 1;
+         transform: translateY(0);
+     }
+ }
+
+ /* ===== Typography ===== */
+ h2 {
+     color: #4a6b4a;
+     margin: 0 0 16px;
+     font-size: 28px;
+     font-weight: 600;
+     position: relative;
+     padding-bottom: 10px;
+ }
+
+ h2::after {
+     content: '';
+     position: absolute;
+     bottom: 0;
+     left: 0;
+     width: 60px;
+     height: 3px;
+     background: linear-gradient(135deg, #4a6b4a 0%, #6b4a3a 100%);
+     border-radius: 2px;
+ }
+
+ h3 {
+     color: #2c3e50;
+     margin: 20px 0 12px;
+     font-size: 20px;
+     font-weight: 600;
+ }
+
+ h4 {
+     color: #4a6b4a;
+     margin: 15px 0 8px;
+     font-size: 16px;
+     font-weight: 600;
+ }
+
+ /* ===== Form Elements ===== */
+ label {
+     display: block;
+     margin-top: 16px;
+     font-weight: 600;
+     color: #2c3e50;
+     font-size: 14px;
+     text-transform: uppercase;
+     letter-spacing: 0.5px;
+ }
+
+ input,
+ select,
+ textarea {
+     width: 100%;
+     padding: 12px 16px;
+     margin-top: 8px;
+     border-radius: 8px;
+     border: 2px solid #e1e8ed;
+     font-size: 15px;
+     transition: all 0.3s ease;
+     background: #fff;
+ }
+
+ input:focus,
+ select:focus,
+ textarea:focus {
+     outline: none;
+     border-color: #3498db;
+     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+     transform: translateY(-2px);
+ }
+
+ button {
+     background: linear-gradient(135deg, #3a6b9a 0%, #2c5282 100%);
+     color: #fff;
+     border: none;
+     cursor: pointer;
+     padding: 12px 24px;
+     border-radius: 8px;
+     font-size: 15px;
+     font-weight: 600;
+     transition: all 0.3s ease;
+     text-transform: uppercase;
+     letter-spacing: 0.5px;
+     box-shadow: 0 4px 15px rgba(58, 107, 154, 0.3);
+ }
+
+ button:hover {
+     transform: translateY(-2px);
+     box-shadow: 0 6px 20px rgba(58, 107, 154, 0.4);
+ }
+
+ button:active {
+     transform: translateY(0);
+ }
+
+ button:disabled {
+     background: #95a5a6;
+     cursor: not-allowed;
+     transform: none;
+     box-shadow: none;
+ }
+
+ button.secondary {
+     background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+     box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+ }
+
+ button.secondary:hover {
+     box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+ }
+
+ /* ===== Utility Classes ===== */
+ .hidden {
+     display: none !important;
+ }
+
+ .error {
+     color: #e74c3c;
+     font-size: 14px;
+     margin-top: 8px;
+     padding: 10px;
+     background: #fdf2f2;
+     border-radius: 6px;
+     border-left: 4px solid #e74c3c;
+ }
+
+ .success {
+     color: #27ae60;
+     margin-top: 12px;
+     font-weight: 600;
+     padding: 12px;
+     background: #f0fdf4;
+     border-radius: 6px;
+     border-left: 4px solid #27ae60;
+ }
+
+ .info-box {
+     background: var(--bg-secondary);
+     border: 2px solid #3a6b9a;
+     padding: 16px;
+     border-radius: 10px;
+     box-shadow: var(--shadow);
+     border-color: var(--border-color);
+ }
+
+ /* ===== Calculator Section ===== */
+ .calculator-form {
+     display: grid;
+     grid-template-columns: 1fr 1fr;
+     gap: 20px;
+     margin-top: 20px;
+ }
+
+ .calculator-inputs,
+ .calculator-summary {
+     padding: 20px;
+     border-radius: 12px;
+     border: 2px solid #e1e8ed;
+     background: var(--bg-secondary);
+     border-color: var(--border-color);
+     box-shadow: var(--shadow);
+ }
+
+ .summary-item {
+     display: flex;
+     justify-content: space-between;
+     padding: 12px 0;
+     border-bottom: 1px dashed #e1e8ed;
+     transition: background 0.3s ease;
+ }
+
+ .summary-item:hover {
+     background: rgba(52, 152, 219, 0.05);
+     padding-left: 8px;
+     padding-right: 8px;
+     margin: 0 -8px;
+     border-radius: 6px;
+ }
+
+ .summary-item:last-child {
+     border-bottom: none;
+     font-weight: 700;
+     font-size: 18px;
+     color: #4a6b4a;
+     background: rgba(74, 107, 74, 0.05);
+ }
+
+ /* ===== Table Styles ===== */
+ .table-container {
+     max-height: 400px;
+     overflow: auto;
+     border: 2px solid #e1e8ed;
+     border-radius: 10px;
+     margin-top: 16px;
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+ }
+
+ table {
+     width: 100%;
+     border-collapse: collapse;
+     font-size: 14px;
+     background: #fff;
+ }
+
+ th,
+ td {
+     padding: 12px;
+     border: 1px solid #e1e8ed;
+     text-align: right;
+ }
+
+ th {
+     background: linear-gradient(135deg, #4a6b4a 0%, #5a8a5a 100%);
+     color: #fff;
+     position: sticky;
+     top: 0;
+     font-weight: 600;
+     text-transform: uppercase;
+     letter-spacing: 0.5px;
+     font-size: 13px;
+ }
+
+ tr:hover {
+     background: #f8f9fa;
+ }
+
+ /* Dark mode table improvements */
+ [data-theme="dark"] table {
+     background: var(--bg-secondary);
+     color: var(--text-primary);
+ }
+
+ [data-theme="dark"] th {
+     background: linear-gradient(135deg, #2a4a2a 0%, #3a5a3a 100%);
+     border-bottom-color: var(--border-color);
+ }
+
+ [data-theme="dark"] td {
+     border-color: var(--border-color);
+ }
+
+ [data-theme="dark"] tr:hover {
+     background: var(--bg-tertiary);
+ }
+
+ /* Dark mode status badges - improved readability */
+ [data-theme="dark"] tr.pending {
+     background: #4a3800;
+     color: #ffd700;
+ }
+
+ [data-theme="dark"] tr.forwarded {
+     background: #1a3a5a;
+     color: #87ceeb;
+ }
+
+ [data-theme="dark"] tr.accepted {
+     background: #1a4d2e;
+     color: #90ee90;
+ }
+
+ [data-theme="dark"] tr.dispatched {
+     background: #2d5a2d;
+     color: #98fb98;
+ }
+
+ [data-theme="dark"] tr.active {
+     background: #1a4a5a;
+     color: #87cefa;
+ }
+
+ [data-theme="dark"] tr.returned {
+     background: #5a4a1a;
+     color: #ffa500;
+ }
+
+ [data-theme="dark"] tr.rejected {
+     background: #4d1a1a;
+     color: #ff6b6b;
+ }
+
+ /* Dark mode card improvements */
+ [data-theme="dark"] .loan-card-header {
+     background: linear-gradient(135deg, #2a4a2a 0%, #3a5a3a 100%);
+ }
+
+ [data-theme="dark"] .loan-history-card:hover {
+     border-color: #5a8a5a;
+ }
+
+ [data-theme="dark"] .detail-row:hover {
+     background: var(--card-hover);
+ }
+
+ /* Dark mode eligibility section */
+ [data-theme="dark"] .eligibility-section {
+     background: linear-gradient(135deg, #1a2a3a 0%, #2a3a4a 100%);
+     border-color: #3a5a7a;
+ }
+
+ [data-theme="dark"] .eligible {
+     background: linear-gradient(135deg, #1a4d2e 0%, #2a5d3e 100%);
+     color: #90ee90;
+     border-color: #3a6a4a;
+ }
+
+ [data-theme="dark"] .not-eligible {
+     background: linear-gradient(135deg, #4d1a1a 0%, #5d2a2a 100%);
+     color: #ff6b6b;
+     border-color: #6a3a3a;
+ }
+
+ /* Dark mode buttons */
+ [data-theme="dark"] button {
+     box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+ }
+
+ [data-theme="dark"] button:hover {
+     box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15);
+ }
+
+ /* ===== Loan History ===== */
+ .loan-history-item {
+     background: var(--bg-secondary);
+     border-color: var(--border-color);
+     padding: 20px;
+     border-radius: 12px;
+     border: 2px solid #e1e8ed;
+     margin-bottom: 16px;
+     transition: all 0.3s ease;
+     box-shadow: var(--shadow);
+ }
+
+ .loan-history-item:hover {
+     transform: translateY(-2px);
+     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+ }
+
+ .loan-details {
+     display: grid;
+     grid-template-columns: 1fr 1fr;
+     gap: 12px;
+     margin-top: 12px;
+ }
+
+ .loan-details>div {
+     padding: 8px;
+     background: #f8f9fa;
+     border-radius: 6px;
+     transition: background 0.3s ease;
+ }
+
+ .loan-details>div:hover {
+     background: #e9ecef;
+ }
+
+ /* ===== Eligibility Check ===== */
+ .eligibility-section {
+     background: var(--bg-secondary);
+     border: 2px solid #3498db;
+     border-color: var(--border-color);
+     border-radius: 12px;
+     padding: 24px;
+     margin-bottom: 24px;
+     box-shadow: var(--shadow);
+ }
+
+ .eligibility-grid {
+     display: grid;
+     grid-template-columns: 1fr 1fr;
+     gap: 20px;
+     margin-top: 20px;
+ }
+
+ .eligibility-result {
+     margin-top: 24px;
+     padding: 20px;
+     border-radius: 10px;
+     font-weight: 600;
+     font-size: 16px;
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+ }
+
+ .eligible {
+     background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+     color: #155724;
+     border: 2px solid #28a745;
+ }
+
+ .not-eligible {
+     background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+     color: #721c24;
+     border: 2px solid #dc3545;
+ }
+
+ .calculation-breakdown {
+     background: #fff;
+     padding: 20px;
+     border-radius: 10px;
+     margin-top: 16px;
+     border: 2px solid #dee2e6;
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+ }
+
+ .breakdown-item {
+     display: flex;
+     justify-content: space-between;
+     padding: 10px 0;
+     border-bottom: 1px solid #e9ecef;
+     transition: background 0.3s ease;
+ }
+
+ .breakdown-item:hover {
+     background: #f8f9fa;
+     padding-left: 8px;
+     padding-right: 8px;
+     margin: 0 -8px;
+     border-radius: 6px;
+ }
+
+ .breakdown-item:last-child {
+     border-bottom: none;
+ }
+
+ .breakdown-total {
+     font-weight: 700;
+     font-size: 18px;
+     color: #2c3e50;
+     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+     margin-top: 8px;
+     padding: 12px !important;
+     border-radius: 6px;
+ }
+
+ .warning-text {
+     color: #856404;
+     background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+     padding: 12px;
+     border-radius: 8px;
+     margin-top: 12px;
+     border-left: 4px solid #ffc107;
+ }
+
+ /* ===== Password Section ===== */
+ .password-section {
+     background: var(--bg-secondary);
+     border: 2px solid #dee2e6;
+     border-color: var(--border-color);
+     border-radius: 12px;
+     padding: 24px;
+     margin-top: 24px;
+     box-shadow: var(--shadow);
+ }
+
+ .password-requirements {
+     font-size: 13px;
+     color: #6c757d;
+     margin-top: 8px;
+     padding: 8px;
+     background: #f8f9fa;
+     border-radius: 6px;
+ }
+
+ .password-strength {
+     height: 6px;
+     margin-top: 8px;
+     border-radius: 3px;
+     background-color: #e9ecef;
+     transition: all 0.3s ease;
+ }
+
+ .password-strength-weak {
+     background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
+     width: 33%;
+ }
+
+ .password-strength-medium {
+     background: linear-gradient(90deg, #ffc107 0%, #e0a800 100%);
+     width: 66%;
+ }
+
+ .password-strength-strong {
+     background: linear-gradient(90deg, #28a745 0%, #218838 100%);
+     width: 100%;
+ }
+
+ .password-match {
+     margin-top: 5px;
+     font-size: 13px;
+     padding: 8px;
+     border-radius: 4px;
+ }
+
+ .password-match.valid {
+     color: #27ae60;
+     background: #f0fdf4;
+     border-left: 4px solid #27ae60;
+ }
+
+ .password-match.invalid {
+     color: #e74c3c;
+     background: #fdf2f2;
+     border-left: 4px solid #e74c3c;
+ }
+
+ /* ===== Payment Schedule Section ===== */
+ .payment-schedule-section {
+     margin-top: 24px;
+     border: 2px solid #e1e8ed;
+     border-radius: 12px;
+     padding: 20px;
+     background: var(--bg-secondary);
+     border-color: var(--border-color);
+     box-shadow: var(--shadow);
+ }
+
+ .schedule-header {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     margin-bottom: 20px;
+ }
+
+ .schedule-info {
+     font-size: 14px;
+     color: #6c757d;
+     font-weight: 500;
+ }
+
+ .schedule-notice {
+     background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+     color: #0c5460;
+     padding: 12px;
+     border-radius: 8px;
+     margin-bottom: 16px;
+     border-left: 4px solid #0c5460;
+     font-weight: 500;
+ }
+
+ /* ===== Payment History Section ===== */
+ .payment-history-section {
+     margin-top: 24px;
+     border: 2px solid #e1e8ed;
+     border-radius: 12px;
+     padding: 20px;
+     background: var(--bg-secondary);
+     border-color: var(--border-color);
+     box-shadow: var(--shadow);
+ }
+
+ .payment-summary {
+     display: grid;
+     grid-template-columns: 1fr 1fr 1fr;
+     gap: 20px;
+     margin-bottom: 20px;
+ }
+
+ .summary-card {
+      background: linear-gradient(135deg, #e8f3eb 0%, #f5faf6 100%);
+     border-radius: 10px;
+     padding: 16px;
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+     text-align: center;
+ }
+
+ .summary-card h4 {
+     margin: 0 0 10px 0;
+     color: #4a6b4a;
+     font-size: 16px;
+ }
+
+ .summary-card .amount {
+     font-size: 24px;
+     font-weight: bold;
+     color: #2c3e50;
+ }
+
+ .payment-filters {
+     display: flex;
+     gap: 15px;
+     margin-bottom: 20px;
+     flex-wrap: wrap;
+ }
+
+ .filter-group {
+     display: flex;
+     flex-direction: column;
+     min-width: 200px;
+ }
+
+ .filter-group label {
+     font-size: 14px;
+     margin-bottom: 5px;
+     text-transform: none;
+     letter-spacing: normal;
+ }
+
+ .filter-group select {
+     padding: 8px 12px;
+     border-radius: 6px;
+      border: 1px solid #b7d3bd;
+ }
+
+ .payment-table-container {
+     overflow-x: auto;
+     margin-top: 20px;
+ }
+
+ .payment-table {
+     width: 100%;
+     border-collapse: collapse;
+     font-size: 14px;
+ }
+
+ .payment-table th {
+     background: linear-gradient(135deg, #4a6b4a 0%, #5a8a5a 100%);
+     color: white;
+     padding: 12px;
+     text-align: left;
+     position: sticky;
+     top: 0;
+ }
+
+ .payment-table td {
+     padding: 12px;
+     border-bottom: 1px solid #e1e8ed;
+ }
+
+ .payment-table tr:hover {
+     background-color: #f8f9fa;
+ }
+
+ .loan-badge {
+     display: inline-block;
+     padding: 4px 8px;
+     border-radius: 4px;
+     font-size: 12px;
+     font-weight: bold;
+     margin-right: 5px;
+ }
+
+ .loan-badge.mortgage {
+     background-color: #e6f0ff;
+     color: #0066cc;
+ }
+
+ .loan-badge.car {
+     background-color: #fff2e6;
+     color: #ff8800;
+ }
+
+ .payment-source-badge {
+     display: inline-block;
+     padding: 4px 8px;
+     border-radius: 4px;
+     font-size: 12px;
+     font-weight: bold;
+ }
+
+ .payment-source-badge.salary {
+     background-color: #e6f7e6;
+     color: #009900;
+ }
+
+ .payment-source-badge.bank {
+     background-color: #e6f0ff;
+     color: #0066cc;
+ }
+
+ .payment-source-badge.cash {
+     background-color: #fff9e6;
+     color: #cc9900;
+ }
+
+ .no-payments {
+     text-align: center;
+     padding: 40px;
+     color: #6c757d;
+     font-style: italic;
+ }
+
+ /* ===== Toast Notification ===== */
+ .toast {
+     position: fixed;
+     bottom: 20px;
+     right: 20px;
+     background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+     color: white;
+     padding: 16px 24px;
+     border-radius: 8px;
+     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+     z-index: 10000;
+     transform: translateY(100px);
+     opacity: 0;
+     transition: all 0.3s ease;
+     font-weight: 500;
+     max-width: 350px;
+ }
+
+ .toast.show {
+     transform: translateY(0);
+     opacity: 1;
+ }
+
+ .toast.error {
+     background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+ }
+
+ .toast.success {
+     background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+ }
+
+ /* ===== Loading State ===== */
+ .loading-content {
+     background: white;
+     padding: 40px;
+     border-radius: 12px;
+     text-align: center;
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+ }
+
+ .loading-content::after {
+     content: '';
+     display: inline-block;
+     width: 40px;
+     height: 40px;
+     border: 4px solid #f3f3f3;
+     border-top: 4px solid #3498db;
+     border-radius: 50%;
+     animation: spin 1s linear infinite;
+     margin-top: 16px;
+ }
+
+ @keyframes spin {
+     0% {
+         transform: rotate(0deg);
+     }
+
+     100% {
+         transform: rotate(360deg);
+     }
+ }
+
+ /* ===== Responsive Design ===== */
+ @media (max-width: 1024px) {
+
+     .calculator-form,
+     .eligibility-grid,
+     .payment-summary {
+         grid-template-columns: 1fr;
+     }
+
+     .loan-details {
+         grid-template-columns: 1fr;
+     }
+ }
+
+ @media (max-width: 760px) {
+     header {
+         position: relative;
+         height: auto;
+         padding: 1rem;
+         z-index: 1001;
+         justify-content: space-between;
+     }
+
+     .header-left {
+         display: flex;
+         align-items: center;
+     }
+
+     .hamburger {
+         display: flex;
+     }
+
+     .header-container {
+         padding-left: 0;
+         /* Remove padding for mobile */
+         flex-direction: column;
+         gap: 0.75rem;
+         padding: 1rem 0;
+         flex: 1;
+     }
+
+     header h1 {
+         font-size: 22px;
+     }
+
+     .logo {
+         height: 45px;
+         width: 45px;
+     }
+
+     .profile-badge {
+         position: relative;
+         right: auto;
+         top: auto;
+         transform: none;
+         justify-content: center;
+         margin-top: 10px;
+         padding: 8px 15px;
+     }
+
+     .profile-info {
+         margin-right: 10px;
+     }
+
+     .profile-name {
+         font-size: 0.8rem;
+     }
+
+     .profile-role {
+         font-size: 0.7rem;
+     }
+
+     .logout-btn {
+         padding: 0.8rem;
+         font-size: 0.8rem;
+     }
+
+     .main-content {
+         margin-left: 0;
+         margin-top: 0;
+         /* Remove margin top for mobile */
+         padding: 1rem;
+     }
+
+     .sidebar {
+         transform: translateX(-100%);
+         /* Hidden by default on mobile */
+     }
+
+     .sidebar.open {
+         transform: translateX(0);
+         /* Shown when hamburger is active */
+     }
+
+     .sidebar.collapsed {
+         transform: translateX(-100%);
+         /* Still collapsed when open to show only icons */
+     }
+
+     .main-content {
+         margin-left: 0;
+         /* No sidebar margin on mobile */
+     }
+
+     .main-content.sidebar-open {
+         margin-left: 0;
+         /* No sidebar margin when sidebar is open */
+     }
+
+     main {
+         padding: 20px;
+         border-radius: 0;
+     }
+
+     h2 {
+         font-size: 24px;
+     }
+
+     .payment-schedule-section,
+     .payment-history-section {
+         padding: 16px;
+     }
+
+     .table-container,
+     .payment-table-container {
+         max-height: 300px;
+     }
+
+     th,
+     td {
+         padding: 8px;
+         font-size: 12px;
+     }
+
+     .toast {
+         left: 20px;
+         right: 20px;
+         max-width: none;
+     }
+
+     .payment-filters {
+         flex-direction: column;
+     }
+
+     .filter-group {
+         width: 100%;
+     }
+ }
+
+ @media (max-width: 480px) {
+     .header-container {
+         gap: 0.5rem;
+     }
+
+     header h1 {
+         font-size: 20px;
+     }
+
+     .logo {
+         height: 40px;
+         width: 40px;
+     }
+
+     main {
+         padding: 16px;
+     }
+
+     h2 {
+         font-size: 22px;
+     }
+
+     button {
+         padding: 10px 20px;
+         font-size: 14px;
+     }
+
+     input,
+     select,
+     textarea {
+         padding: 10px 12px;
+         font-size: 14px;
+         background: var(--bg-secondary);
+         color: var(--text-primary);
+         border-color: var(--border-color);
+     }
+ }
+
+ /* ===== Print Styles ===== */
+ @media print {
+
+     header,
+     .sidebar {
+         display: none;
+     }
+
+     .main-content {
+         margin: 0;
+         padding: 0;
+     }
+
+     main {
+         box-shadow: none;
+         border: none;
+     }
+
+     button,
+     .toast {
+         display: none;
+     }
+ }
+
+ .return-staff-btn {
+     background: linear-gradient(135deg, #6b4a3a 0%, #5a3a2a 100%);
+     color: white;
+     border: none;
+     cursor: pointer;
+     padding: 12px 20px;
+     border-radius: 8px;
+     font-size: 14px;
+     font-weight: 500;
+     margin-top: 20px;
+     transition: all 0.3s ease;
+     display: flex;
+     align-items: center;
+     gap: 8px;
+ }
+
+ .return-staff-btn:hover {
+     background: linear-gradient(135deg, #5a3a2a 0%, #4a2a2a 100%);
+     transform: translateY(-2px);
+     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+ }
+
+ .return-staff-btn:active {
+     transform: translateY(0);
+ }
+
+ /* Profile Dropdown Styles */
+ .profile-dropdown {
+     position: absolute;
+     right: 20px;
+     top: 50%;
+     transform: translateY(-50%);
+ }
+
+ .profile-button {
+     display: flex;
+     align-items: center;
+     background-color: rgba(255, 255, 255, 0.1);
+     border: none;
+     border-radius: 30px;
+     padding: 5px 15px;
+     cursor: pointer;
+     transition: background-color 0.3s;
+ }
+
+ .profile-button:hover {
+     background-color: rgba(255, 255, 255, 0.2);
+ }
+
+ .profile-avatar {
+     width: 40px;
+     height: 40px;
+     border-radius: 50%;
+     border: 2px solid #fff;
+     margin-right: 10px;
+ }
+
+ .profile-name {
+     color: white;
+     font-weight: bold;
+     font-size: 0.9rem;
+     margin-right: 10px;
+ }
+
+ .dropdown-arrow {
+     color: white;
+     font-size: 0.8rem;
+     transition: transform 0.3s;
+ }
+
+ .profile-button.active .dropdown-arrow {
+     transform: rotate(180deg);
+ }
+
+ .dropdown-menu {
+     position: absolute;
+     top: 100%;
+     right: 0;
+     background-color: white;
+     border-radius: 8px;
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+     min-width: 180px;
+     z-index: 1000;
+     opacity: 0;
+     visibility: hidden;
+     transform: translateY(10px);
+     transition: all 0.3s ease;
+     margin-top: 10px;
+ }
+
+ .dropdown-menu.show {
+     opacity: 1;
+     visibility: visible;
+     transform: translateY(0);
+ }
+
+ .dropdown-item {
+     display: flex;
+     align-items: center;
+     padding: 12px 15px;
+     color: #2c3e50;
+     text-decoration: none;
+     transition: background-color 0.2s;
+ }
+
+ .dropdown-item:hover {
+     background-color: #f8f9fa;
+ }
+
+ .dropdown-item:first-child {
+     border-radius: 8px 8px 0 0;
+ }
+
+ .dropdown-item:last-child {
+     border-radius: 0 0 8px 8px;
+ }
+
+ .dropdown-icon {
+     margin-right: 10px;
+     font-size: 1rem;
+ }
+
+ .logout-item {
+     color: white;
+     background: #c0392b;
+     border-radius: 0 0 8px 8px;
+ }
+
+ .logout-item:hover {
+     background: #a0281b;
+ }
+
+ /* Update responsive styles for profile dropdown */
+ @media (max-width: 760px) {
+     .profile-dropdown {
+         position: relative;
+         right: auto;
+         top: auto;
+         transform: none;
+         margin-top: 10px;
+     }
+
+     .header-container {
+         flex-direction: column;
+         gap: 0.75rem;
+         padding: 1rem 0;
+     }
+ }
+
+ /* Schedule Filters Styles */
+ .schedule-filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    padding: 15px;
+    background: linear-gradient(135deg, #d4edda 0%, #e9f5eb 100%);
+    border-radius: 10px;
+    border: 1px solid #a8d5b0;
+    box-shadow: 0 2px 8px rgba(40, 100, 60, 0.08); /* subtle green shadow */
+}
+
+
+
+ .schedule-filters .filter-group {
+     display: flex;
+     flex-direction: column;
+     min-width: 200px;
+ }
+
+ .schedule-filters .filter-group label {
+     font-size: 14px;
+     margin-bottom: 5px;
+     text-transform: none;
+     letter-spacing: normal;
+ }
+
+ .schedule-filters .filter-group select,
+ .schedule-filters .filter-group input {
+     border: 1.5px solid #7ab87e;          /* visible green border */
+     background: #ffffff;
+     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+     color: #1a202c;
+ }
+
+ .schedule-filters .filter-group select:focus,
+.schedule-filters .filter-group input:focus {
+    border-color: #4a6b4a;
+    box-shadow: 0 0 0 3px rgba(74, 107, 74, 0.18);
+    outline: none;
+}
+
+.schedule-filters input:focus,
+.schedule-filters select:focus {
+    transform: none; /* cancel the global lift inside filter cards */
+}
+
+ .schedule-filters button {
+     margin-top: 0;
+     padding: 8px 15px;
+     font-size: 14px;
+ }
+
+ #scheduleTableContainer {
+     margin-top: 20px;
+     width: 100%;
+     overflow-x: auto;
+ }
+
+ .schedule-table {
+     min-width: 760px;
+ }
+
+ .schedule-loan-section,
+ .schedule-loan-section p,
+ .schedule-table td {
+     color: #1a202c;
+ }
+
+ .schedule-table td {
+     background: #ffffff;
+ }
+
+ [data-theme="dark"] .schedule-loan-section,
+ [data-theme="dark"] .schedule-loan-section p,
+ [data-theme="dark"] .schedule-table td {
+     color: var(--text-primary);
+ }
+
+ [data-theme="dark"] .schedule-table td {
+     background: var(--bg-secondary);
+ }
+
+ @media (max-width: 760px) {
+     .schedule-filters .filter-group {
+         flex: 1 1 100%;
+         min-width: 0;
+     }
+
+     .schedule-filters .filter-group:last-child {
+         flex-direction: column;
+         align-items: stretch !important;
+     }
+
+     .schedule-filters button {
+         width: 100%;
+     }
+ }
+
+ /* ===== Loan History Styles ===== */
+ .loan-history-grid {
+     display: grid;
+     grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+     gap: 24px;
+     margin-top: 20px;
+ }
+
+ .loan-history-card {
+     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+     border-radius: 16px;
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+     overflow: hidden;
+     transition: all 0.3s ease;
+     border: 2px solid #e1e8ed;
+ }
+
+ .loan-history-card:hover {
+     transform: translateY(-4px);
+     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+     border-color: #4a6b4a;
+ }
+
+ .loan-card-header {
+     background: linear-gradient(135deg, #4a6b4a 0%, #5a8a5a 100%);
+     padding: 20px;
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+ }
+
+ .loan-header-left {
+     flex: 1;
+ }
+
+ .loan-title {
+     color: white;
+     margin: 0 0 5px 0;
+     font-size: 22px;
+     font-weight: 700;
+ }
+
+ .loan-id {
+     color: rgba(255, 255, 255, 0.85);
+     margin: 0;
+     font-size: 13px;
+     font-weight: 500;
+ }
+
+ .loan-header-right {
+     flex-shrink: 0;
+ }
+
+ .status-badge {
+     display: inline-block;
+     padding: 8px 16px;
+     border-radius: 20px;
+     font-weight: 600;
+     font-size: 13px;
+     text-transform: uppercase;
+     letter-spacing: 0.5px;
+     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+ }
+
+ .loan-card-body {
+     padding: 24px;
+ }
+
+ .detail-section {
+     margin-bottom: 24px;
+     padding-bottom: 20px;
+     border-bottom: 1px solid #e9ecef;
+ }
+
+ .detail-section:last-child {
+     margin-bottom: 0;
+     padding-bottom: 0;
+     border-bottom: none;
+ }
+
+ .section-title {
+     color: #4a6b4a;
+     font-size: 16px;
+     font-weight: 700;
+     margin: 0 0 12px 0;
+     text-transform: uppercase;
+     letter-spacing: 0.5px;
+     display: flex;
+     align-items: center;
+ }
+
+ .section-title::before {
+     content: '';
+     display: inline-block;
+     width: 4px;
+     height: 18px;
+     background: linear-gradient(135deg, #4a6b4a 0%, #5a8a5a 100%);
+     margin-right: 10px;
+     border-radius: 2px;
+ }
+
+ .detail-row {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     padding: 10px 0;
+     transition: background 0.2s ease;
+ }
+
+ .detail-row:hover {
+     background: rgba(74, 107, 74, 0.03);
+     padding-left: 8px;
+     padding-right: 8px;
+     margin: 0 -8px;
+     border-radius: 6px;
+ }
+
+ .detail-label {
+     color: #6c757d;
+     font-weight: 600;
+     font-size: 14px;
+     flex: 0 0 45%;
+ }
+
+ .detail-value {
+     color: #2c3e50;
+     font-weight: 500;
+     font-size: 14px;
+     text-align: right;
+     flex: 0 0 55%;
+ }
+
+ .amount-highlight {
+     color: #4a6b4a;
+     font-weight: 700;
+     font-size: 16px;
+ }
+
+ .feedback-box {
+     background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+     padding: 16px;
+     border-radius: 10px;
+     border-left: 4px solid #ffc107;
+     color: #856404;
+     font-size: 14px;
+     line-height: 1.6;
+     box-shadow: 0 2px 8px rgba(255, 193, 7, 0.15);
+ }
+
+ .timeline {
+     position: relative;
+     padding-left: 30px;
+ }
+
+ .timeline::before {
+     content: '';
+     position: absolute;
+     left: 6px;
+     top: 8px;
+     bottom: 8px;
+     width: 2px;
+     background: linear-gradient(180deg, #4a6b4a 0%, #5a8a5a 100%);
+ }
+
+ .timeline-item {
+     position: relative;
+     margin-bottom: 16px;
+ }
+
+ .timeline-item:last-child {
+     margin-bottom: 0;
+ }
+
+ .timeline-dot {
+     position: absolute;
+     left: -27px;
+     top: 5px;
+     width: 14px;
+     height: 14px;
+     background: #4a6b4a;
+     border: 3px solid white;
+     border-radius: 50%;
+     box-shadow: 0 2px 6px rgba(74, 107, 74, 0.3);
+ }
+
+ .timeline-content {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     background: #f8f9fa;
+     padding: 10px 14px;
+     border-radius: 8px;
+     transition: all 0.2s ease;
+ }
+
+ .timeline-content:hover {
+     background: #e9ecef;
+     transform: translateX(4px);
+ }
+
+ .timeline-label {
+     font-weight: 600;
+     color: #2c3e50;
+     font-size: 14px;
+ }
+
+ .timeline-date {
+     color: #6c757d;
+     font-size: 13px;
+     font-weight: 500;
+ }
+
+ /* Responsive Design */
+ @media (max-width: 1024px) {
+     .loan-history-grid {
+         grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+     }
+ }
+
+ @media (max-width: 760px) {
+     .loan-history-grid {
+         grid-template-columns: 1fr;
+     }
+ }
+
+ @media (max-width: 480px) {
+     .loan-history-grid {
+         grid-template-columns: 1fr;
+     }
+
+     .loan-card-header {
+         flex-direction: column;
+         align-items: flex-start;
+         gap: 12px;
+     }
+
+     .loan-header-right {
+         width: 100%;
+     }
+
+     .status-badge {
+         display: block;
+         text-align: center;
+     }
+
+     .detail-row {
+         flex-direction: column;
+         align-items: flex-start;
+         gap: 5px;
+     }
+
+     .detail-label,
+     .detail-value {
+         flex: 1;
+         width: 100%;
+         text-align: left;
+     }
+
+     .detail-value {
+         font-weight: 600;
+         color: #4a6b4a;
+     }
+
+     .timeline {
+         padding-left: 25px;
+     }
+
+     .timeline-content {
+         flex-direction: column;
+         align-items: flex-start;
+         gap: 5px;
+     }
+ }
+
+ /* ===== Responsive Theme Selector ===== */
+ @media (max-width: 760px) {
+     .theme-selector {
+         width: auto;
+         padding: 4px 8px;
+     }
+
+     .theme-option {
+         padding: 4px;
+     }
+
+     .theme-preview {
+         width: 16px;
+         height: 16px;
+     }
+
+     .theme-option span:last-child {
+         font-size: 0.75rem;
+     }
+ }
+
+ @media (max-width: 480px) {
+     .header-container {
+         flex-wrap: wrap;
+     }
+
+     .theme-selector {
+         order: 3;
+         width: 100%;
+         margin-top: 10px;
+     }
+ }

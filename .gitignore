@@ -1,0 +1,60 @@
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+secure/*
+!secure/.gitkeep
+
+# Composer dependencies
+/vendor/
+
+# Runtime logs and PHP error output
+*.log
+php_errors.log
+php_error.log
+error.log
+/logs/
+/api/logs/
+/pages/logs/
+
+# Uploaded/imported user files and generated exports
+/uploads/
+/storage/
+/tmp/
+/temp/
+*.csv
+*.xls
+*.xlsx
+*.pdf
+
+# Backups and generated database dumps
+/backups/
+backup_*.json
+backup_*.sql
+dump_*.sql
+*_dump.sql
+*.bak
+
+# Local runtime/tooling files
+/php.exe
+/.php-version
+.phpunit.result.cache
+.phpunit.cache/
+
+# IDE and operating-system files
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/tasks.json
+*.code-workspace
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary editor and patch files
+*.swp
+*.swo
+*.tmp
+*.temp
+*.orig
+*.rej
