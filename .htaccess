@@ -1,0 +1,23 @@
+# Prevent directory browsing
+Options -Indexes
+
+# Enable error logging
+php_flag display_errors Off
+php_flag log_errors On
+
+# Session configuration
+php_value session.gc_maxlifetime 86400
+php_value session.cookie_lifetime 86400
+
+# Security headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# URL Rewriting (if needed)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /loan-system/
+</IfModule>

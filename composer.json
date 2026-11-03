@@ -1,0 +1,20 @@
+{
+    "name": "loan-system/file-parser",
+    "description": "File parsing libraries for PDF, Excel, and CSV import",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "phpoffice/phpspreadsheet": "^1.29",
+        "smalot/pdfparser": "^2.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "LoanSystem\\": "lib/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    }
+}
