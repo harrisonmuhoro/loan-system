@@ -420,6 +420,130 @@ function depositLegacyPayment(PDO $db, string $amount, string $transactionRefere
     return $accountId;
 }
 
+function reverseLegacyFundingPayment(PDO $db, int $paymentTransactionId, string $amount, string $transactionReference, int $actor): void
+{
+    $detail = $db->prepare(
+        'SELECT funding_account_id FROM legacy_payment_details WHERE legacy_transaction_id = ? FOR UPDATE'
+    );
+    $detail->execute([$paymentTransactionId]);
+    $fundingAccountId = $detail->fetchColumn();
+    if (!$fundingAccountId) {
+        throw new RuntimeException('Original payment has no linked funding account');
+    }
+
+    $account = $db->prepare('SELECT balance FROM funding_accounts WHERE id = ? FOR UPDATE');
+    $account->execute([(int)$fundingAccountId]);
+    $balance = $account->fetchColumn();
+    if ($balance === false) {
+        throw new RuntimeException('Original payment funding account was not found');
+    }
+
+    $reference = 'legacy-payment-reversal:' . $transactionReference;
+    $insert = $db->prepare(
+        "INSERT INTO funding_transactions
+         (funding_account_id, amount, transaction_type, reference, created_by)
+         VALUES (?, ?, 'refund', ?, ?)"
+    );
+    $insert->execute([(int)$fundingAccountId, $amount, $reference, $actor]);
+
+    $update = $db->prepare(
+        'UPDATE funding_accounts SET balance = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+    );
+    $update->execute([
+        number_format((float)$balance - (float)$amount, 2, '.', ''),
+        (int)$fundingAccountId
+    ]);
+}
+
+function validatePostCloseAuthorization(PDO $db, string $reference, string $operation, int $accountId, int $yearId, string $amount, int $actor): array
+{
+    $stmt = $db->prepare(
+        'SELECT * FROM legacy_post_close_authorizations
+          WHERE authorization_reference = ? FOR UPDATE'
+    );
+    $stmt->execute([$reference]);
+    $authorization = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$authorization
+        || $authorization['status'] !== 'APPROVED'
+        || $authorization['operation_type'] !== $operation
+        || (int)$authorization['legacy_account_id'] !== $accountId
+        || (int)$authorization['financial_year_id'] !== $yearId
+        || bccomp((string)$authorization['amount'], $amount, 4) !== 0
+        || (int)$authorization['requested_by'] === (int)$authorization['approved_by']) {
+        throw new RuntimeException('A matching, approved, unused post-close authorization is required');
+    }
+    if ((int)$authorization['approved_by'] === $actor) {
+        throw new RuntimeException('The post-close approver cannot post the authorized transaction');
+    }
+    return $authorization;
+}
+
+function requestPostCloseAuthorization(PDO $db, array $data, int $actor): void
+{
+    legacyRequirePermission($db, 'legacy.post_close.request');
+    $accountId = requiredInt($data, 'legacy_account_id');
+    $yearId = requiredInt($data, 'financial_year_id');
+    $operation = strtoupper(requiredText($data, 'operation_type', 20));
+    if (!in_array($operation, ['PAYMENT', 'INTEREST', 'PENALTY'], true)) {
+        ledgerResponse(false, 'Unsupported post-close operation', null, 422);
+    }
+    $amount = requiredAmount($data);
+    $reason = requiredText($data, 'reason', 1000);
+    $db->beginTransaction();
+    try {
+        getAccountForUpdate($db, $accountId);
+        $year = getYearForUpdate($db, $yearId);
+        if ($year['status'] !== 'CLOSED' || (int)$year['post_close_transactions_allowed'] !== 1) {
+            throw new RuntimeException('Post-close authorization is available only for permitted closed years');
+        }
+        $reference = newReference('PCA');
+        $stmt = $db->prepare(
+            "INSERT INTO legacy_post_close_authorizations
+             (authorization_reference, legacy_account_id, financial_year_id, operation_type,
+              amount, reason_text, requested_by)
+             VALUES (?, ?, ?, ?, ?, ?, ?)"
+        );
+        $stmt->execute([$reference, $accountId, $yearId, $operation, $amount, $reason, $actor]);
+        $id = (int)$db->lastInsertId();
+        auditLedger($db, 'legacy_post_close_authorization', $id, 'POST_CLOSE_REQUESTED', $actor, $reason, $reference, null, [
+            'legacy_account_id' => $accountId, 'financial_year_id' => $yearId,
+            'operation_type' => $operation, 'amount' => (float)$amount
+        ]);
+        $db->commit();
+        ledgerResponse(true, 'Post-close authorization requested', ['authorization_reference' => $reference], 201);
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) $db->rollBack();
+        ledgerResponse(false, $e->getMessage(), null, 422);
+    }
+}
+
+function approvePostCloseAuthorization(PDO $db, array $data, int $actor): void
+{
+    legacyRequirePermission($db, 'legacy.post_close.approve');
+    $reference = requiredText($data, 'authorization_reference', 100);
+    $reason = requiredText($data, 'reason', 1000);
+    $db->beginTransaction();
+    try {
+        $stmt = $db->prepare('SELECT * FROM legacy_post_close_authorizations WHERE authorization_reference=? FOR UPDATE');
+        $stmt->execute([$reference]);
+        $authorization = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$authorization || $authorization['status'] !== 'REQUESTED') {
+            throw new RuntimeException('Post-close authorization is not awaiting approval');
+        }
+        if ((int)$authorization['requested_by'] === $actor) {
+            throw new RuntimeException('A requester cannot approve their own post-close authorization');
+        }
+        $db->prepare("UPDATE legacy_post_close_authorizations SET status='APPROVED', approved_by=?, approved_at=CURRENT_TIMESTAMP WHERE post_close_authorization_id=?")
+            ->execute([$actor, $authorization['post_close_authorization_id']]);
+        auditLedger($db, 'legacy_post_close_authorization', (int)$authorization['post_close_authorization_id'], 'POST_CLOSE_APPROVED', $actor, $reason, $reference, ['status' => 'REQUESTED'], ['status' => 'APPROVED']);
+        $db->commit();
+        ledgerResponse(true, 'Post-close authorization approved');
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) $db->rollBack();
+        ledgerResponse(false, $e->getMessage(), null, 422);
+    }
+}
+
 function routePostMigrationPayment(PDO $db, array $account, string $paymentDate, string $amount, string $paymentMethod, string $transactionReference, int $actor, string $reason, array $migration): void
 {
     $loanStmt = $db->prepare('SELECT * FROM loan_applications WHERE id = :loan_id FOR UPDATE');
@@ -606,6 +730,7 @@ function handlePayment(PDO $db, array $data, int $actor): void
                 || $postCloseReference === null) {
                 throw new RuntimeException('Closed financial year requires controlled post-close authorization');
             }
+            validatePostCloseAuthorization($db, $postCloseReference, 'PAYMENT', $accountId, $yearId, $amount, $actor);
         }
 
         $migrationStmt = $db->prepare(
@@ -685,7 +810,10 @@ function handlePayment(PDO $db, array $data, int $actor): void
         }
 
         $status = $e instanceof PDOException && $e->getCode() === '23000' ? 409 : 422;
-        ledgerResponse(false, $e->getMessage(), null, $status);
+        $message = $e instanceof PDOException
+            ? 'Legacy payment could not be posted'
+            : $e->getMessage();
+        ledgerResponse(false, $message, null, $status);
     }
 }
 
@@ -913,6 +1041,14 @@ function handleExecuteAction(PDO $db, array $data, int $actor): void
         $reason = $request['reason_text'];
         $postCloseReference = $year['status'] === 'CLOSED' ? $request['request_reference'] : null;
 
+        if ($year['status'] === 'CLOSED') {
+            if ((int)$year['post_close_transactions_allowed'] !== 1
+                || $request['status'] !== 'APPROVED'
+                || (int)$request['requested_by'] === (int)$request['approved_by']) {
+                throw new RuntimeException('Closed-year action requires valid independent approval');
+            }
+        }
+
         $beforeBalance = currentBalance($db, (int)$request['legacy_account_id']);
         $amount = $request['requested_amount'] !== null
             ? number_format((float)$request['requested_amount'], 4, '.', '')
@@ -966,6 +1102,14 @@ function handleExecuteAction(PDO $db, array $data, int $actor): void
                 "UPDATE legacy_payment_details SET reconciliation_state='REVERSED'
                   WHERE legacy_transaction_id=:transaction_id"
             )->execute([':transaction_id' => $original['legacy_transaction_id']]);
+
+            reverseLegacyFundingPayment(
+                $db,
+                (int)$original['legacy_transaction_id'],
+                $amount,
+                (string)$original['transaction_reference'],
+                $actor
+            );
         } else {
             if ($amount === null) {
                 throw new RuntimeException('An approved action amount is required');
@@ -1052,6 +1196,9 @@ function handleCharge(PDO $db, array $data, int $actor): void
         }
 
         $reference = requiredText($data, 'transaction_reference', 100);
+        if ($year['status'] === 'CLOSED') {
+            validatePostCloseAuthorization($db, $postCloseReference, $chargeType, $accountId, $yearId, $amount, $actor);
+        }
         $before = currentBalance($db, $accountId);
         $id = postLedgerTransaction(
             $db, $accountId, $yearId, $reference, $chargeType, $amount, null,
@@ -1080,6 +1227,75 @@ function handleCharge(PDO $db, array $data, int $actor): void
     }
 }
 
+function handleDisputeStatus(PDO $db, array $data, int $actor): void
+{
+    requireLedgerPermission($db, 'legacy.dispute.manage');
+    $accountId = requiredInt($data, 'legacy_account_id');
+    $newStatus = strtoupper(requiredText($data, 'dispute_status', 20));
+    if (!in_array($newStatus, ['NONE', 'OPEN', 'RESOLVED', 'REJECTED'], true)) {
+        ledgerResponse(false, 'Invalid dispute status', null, 422);
+    }
+    $reason = requiredText($data, 'reason', 1000);
+    $resolution = optionalText($data, 'resolution', 1000);
+    $impact = null;
+    if (array_key_exists('financial_impact', $data) && $data['financial_impact'] !== null && $data['financial_impact'] !== '') {
+        if (!is_numeric($data['financial_impact'])) {
+            ledgerResponse(false, 'financial_impact must be numeric', null, 422);
+        }
+        $impact = number_format((float)$data['financial_impact'], 4, '.', '');
+    }
+
+    $db->beginTransaction();
+    try {
+        $stmt = $db->prepare(
+            'SELECT legacy_account_id, dispute_status
+               FROM legacy_debt_accounts
+              WHERE legacy_account_id = ? FOR UPDATE'
+        );
+        $stmt->execute([$accountId]);
+        $account = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$account) {
+            throw new RuntimeException('Legacy account not found');
+        }
+        $oldStatus = (string)$account['dispute_status'];
+        if ($oldStatus === $newStatus) {
+            throw new RuntimeException('Dispute status is unchanged');
+        }
+
+        $db->prepare(
+            'UPDATE legacy_debt_accounts SET dispute_status = ? WHERE legacy_account_id = ?'
+        )->execute([$newStatus, $accountId]);
+        $db->prepare(
+            'INSERT INTO legacy_dispute_events
+                (legacy_account_id, old_status, new_status, reason, resolution, financial_impact, actor_user_id)
+             VALUES (?, ?, ?, ?, ?, ?, ?)'
+        )->execute([$accountId, $oldStatus, $newStatus, $reason, $resolution, $impact, $actor]);
+
+        auditLedger(
+            $db,
+            'legacy_account',
+            $accountId,
+            'DISPUTE_STATUS_CHANGED',
+            $actor,
+            $reason,
+            null,
+            ['dispute_status' => $oldStatus],
+            ['dispute_status' => $newStatus, 'resolution' => $resolution, 'financial_impact' => $impact]
+        );
+        $db->commit();
+        ledgerResponse(true, 'Dispute status recorded', [
+            'legacy_account_id' => $accountId,
+            'old_status' => $oldStatus,
+            'new_status' => $newStatus
+        ], 201);
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
+        ledgerResponse(false, $e->getMessage(), null, 422);
+    }
+}
+
 try {
     $db = ledgerDb();
     $method = $_SERVER['REQUEST_METHOD'];
@@ -1100,6 +1316,12 @@ try {
     $actor = ledgerUserId();
 
     switch ($action) {
+        case 'REQUEST_POST_CLOSE_AUTHORIZATION':
+            requestPostCloseAuthorization($db, $data, $actor);
+            break;
+        case 'APPROVE_POST_CLOSE_AUTHORIZATION':
+            approvePostCloseAuthorization($db, $data, $actor);
+            break;
         case 'RECORD_PAYMENT':
             handlePayment($db, $data, $actor);
             break;
@@ -1114,6 +1336,9 @@ try {
             break;
         case 'POST_CHARGE':
             handleCharge($db, $data, $actor);
+            break;
+        case 'UPDATE_DISPUTE_STATUS':
+            handleDisputeStatus($db, $data, $actor);
             break;
         default:
             ledgerResponse(false, 'Unknown legacy-ledger action', null, 422);

@@ -141,6 +141,31 @@ function migrationBalance(PDO $db, int $accountId): string
     return number_format((float)$stmt->fetchColumn(), 4, '.', '');
 }
 
+function migrationMatchingLoans(PDO $db, array $account): array
+{
+    $conditions = [];
+    $params = [];
+    if (!empty($account['linked_user_id'])) {
+        $conditions[] = 'user_id = ?';
+        $params[] = (int)$account['linked_user_id'];
+    }
+    if (!empty($account['pf_number'])) {
+        $conditions[] = 'pf_number = ?';
+        $params[] = (string)$account['pf_number'];
+    }
+    if (!empty($account['national_id'])) {
+        $conditions[] = 'id_number = ?';
+        $params[] = (string)$account['national_id'];
+    }
+    if (!$conditions) return [];
+    $stmt = $db->prepare(
+        'SELECT id, application_id, user_id, pf_number, id_number, loan_amount
+           FROM loan_applications WHERE ' . implode(' OR ', $conditions) . ' ORDER BY id FOR UPDATE'
+    );
+    $stmt->execute($params);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 function migrationRequest(PDO $db, array $data, int $actor): void
 {
     migrationPermission($db, 'legacy.migration.request');
@@ -164,6 +189,13 @@ function migrationRequest(PDO $db, array $data, int $actor): void
             throw new RuntimeException('Legacy debt account not found');
         }
 
+        if (!empty($account['linked_loan_application_id'])) {
+            $linked = $db->prepare('SELECT id, loan_amount FROM loan_applications WHERE id=? FOR UPDATE');
+            $linked->execute([(int)$account['linked_loan_application_id']]);
+            $linkedLoan = $linked->fetch(PDO::FETCH_ASSOC);
+            if (!$linkedLoan) throw new RuntimeException('Existing linked normal loan is missing; manual reconciliation is required');
+        }
+
         $existing = $db->prepare(
             "SELECT * FROM legacy_migrations WHERE legacy_account_id = ?
              ORDER BY legacy_migration_id DESC LIMIT 1 FOR UPDATE"
@@ -177,6 +209,16 @@ function migrationRequest(PDO $db, array $data, int $actor): void
         $balance = migrationBalance($db, $accountId);
         if ((float)$balance <= 0) {
             throw new RuntimeException('Only a positive legacy balance can be migrated');
+        }
+        $linkedId = (int)($account['linked_loan_application_id'] ?? 0);
+        $matches = migrationMatchingLoans($db, $account);
+        $linkedMatchExists = count(array_filter($matches, static fn(array $loan): bool => (int)$loan['id'] === $linkedId)) > 0;
+        if ($linkedId === 0 && $matches) {
+            throw new RuntimeException('Existing normal loan identity match requires manual reconciliation before migration');
+        }
+        if ($linkedId > 0 && !$linkedMatchExists) throw new RuntimeException('Existing loan link does not match debtor identity; manual reconciliation is required');
+        if ($linkedId > 0 && bccomp((string)$linkedLoan['loan_amount'], $balance, 4) !== 0) {
+            throw new RuntimeException('Existing linked normal loan balance differs; manual reconciliation is required');
         }
 
         $action = $db->prepare(
@@ -285,6 +327,18 @@ function migrationExecute(PDO $db, array $data, int $actor): void
             $loan = $loanStmt->fetch(PDO::FETCH_ASSOC);
         }
 
+        $linkedId = (int)($account['linked_loan_application_id'] ?? 0);
+        $matches = migrationMatchingLoans($db, $account);
+        $linkedMatchExists = count(array_filter($matches, static fn(array $candidate): bool => (int)$candidate['id'] === $linkedId)) > 0;
+        if ($linkedId === 0 && $matches) {
+            throw new RuntimeException('Existing normal loan identity match requires manual reconciliation before migration');
+        }
+        if ($linkedId > 0 && !$linkedMatchExists) throw new RuntimeException('Existing loan link does not match debtor identity; manual reconciliation is required');
+
+        if ($loan && bccomp((string)$loan['loan_amount'], (string)$migration['balance_at_migration'], 4) !== 0) {
+            throw new RuntimeException('Existing linked normal loan balance differs from the approved migration balance');
+        }
+
         if (!$loan) {
             $applicationId = 'LEGACY-' . $accountId . '-' . strtoupper(bin2hex(random_bytes(4)));
             $insertLoan = $db->prepare(
@@ -296,11 +350,34 @@ function migrationExecute(PDO $db, array $data, int $actor): void
             $insertLoan->execute([
                 $account['linked_user_id'] ?: null, $applicationId, $account['full_name'],
                 $account['national_id'], $account['pf_number'], $migration['balance_at_migration'],
-                'Controlled legacy migration; historical balance remains represented by the legacy account.'
+                'Controlled migration of the collectible balance from the legacy ledger.'
             ]);
             $loanId = (int)$db->lastInsertId();
             $loan = ['id' => $loanId, 'application_id' => $applicationId, 'loan_amount' => $migration['balance_at_migration']];
         }
+
+        $fy = $db->prepare(
+            'SELECT financial_year_id, status FROM legacy_financial_years
+              WHERE start_date <= DATE(?) AND end_date >= DATE(?) FOR UPDATE'
+        );
+        $fy->execute([$migration['migration_date'], $migration['migration_date']]);
+        $financialYear = $fy->fetch(PDO::FETCH_ASSOC);
+        if (!$financialYear) throw new RuntimeException('Migration date does not belong to a configured financial year');
+
+        $ledger = $db->prepare(
+            "INSERT INTO legacy_transactions
+             (legacy_account_id, financial_year_id, transaction_reference, transaction_type,
+              debit_amount, credit_amount, transaction_date, source_type, source_reference,
+              description, reason_code, post_close_approval_reference, recorded_by)
+             VALUES (?, ?, ?, 'MIGRATION', 0, ?, DATE(?), 'legacy_migration', ?,
+                     'Collectible balance transferred to linked normal loan', 'MIGRATION', ?, ?)"
+        );
+        $ledger->execute([
+            $accountId, (int)$financialYear['financial_year_id'],
+            'MIG-' . $migration['migration_reference'], $migration['balance_at_migration'],
+            $migration['migration_date'], (string)$loan['application_id'],
+            $migration['migration_reference'], $actor
+        ]);
 
         $db->prepare("UPDATE legacy_migrations SET migration_status='EXECUTED', loan_application_id=?, loan_application_reference=?, executed_by=?, executed_at=CURRENT_TIMESTAMP WHERE legacy_migration_id=?")
             ->execute([$loan['id'], $loan['application_id'], $actor, $migration['legacy_migration_id']]);

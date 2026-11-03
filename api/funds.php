@@ -136,7 +136,9 @@ try {
                         fa.updated_at AS updatedAt,
                         COUNT(ft.id) AS transaction_count,
                         COALESCE(SUM(CASE WHEN ft.transaction_type = 'withdrawal' THEN ft.amount ELSE 0 END), 0) AS total_withdrawals,
-                        COALESCE(SUM(CASE WHEN ft.transaction_type = 'deposit' THEN ft.amount ELSE 0 END), 0) AS total_deposits
+                        COALESCE(SUM(CASE WHEN ft.transaction_type = 'deposit' THEN ft.amount ELSE 0 END), 0) AS total_deposits,
+                        COALESCE(SUM(CASE WHEN ft.transaction_type = 'refund' THEN ft.amount ELSE 0 END), 0) AS total_refunds,
+                        COALESCE(SUM(CASE WHEN ft.transaction_type = 'deposit' THEN ft.amount WHEN ft.transaction_type IN ('withdrawal','refund') THEN -ft.amount ELSE 0 END), 0) AS net_transaction_total
                       FROM funding_accounts fa
                       LEFT JOIN funding_transactions ft ON fa.id = ft.funding_account_id
                       GROUP BY fa.id, fa.name, fa.balance, fa.created_at, fa.updated_at

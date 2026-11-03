@@ -24,7 +24,7 @@ switch ($method) {
         }
 
         // First get the loan application ID from the application_id string
-        $app_query = "SELECT id FROM loan_applications WHERE application_id = :application_id";
+        $app_query = "SELECT id, user_id FROM loan_applications WHERE application_id = :application_id";
         $app_stmt = $db->prepare($app_query);
         $app_stmt->bindParam(":application_id", $application_id);
         $app_stmt->execute();
@@ -32,6 +32,14 @@ switch ($method) {
 
         if (!$app_result) {
             ResponseHelper::error('Application not found');
+        }
+
+        $identity = $db->prepare('SELECT role FROM users WHERE user_id = ? AND is_active = 1');
+        $identity->execute([(int)$_SESSION['user_id']]);
+        $role = strtolower((string)$identity->fetchColumn());
+        if (!in_array($role, ['admin', 'accountant', 'cashier'], true)
+            && (int)$app_result['user_id'] !== (int)$_SESSION['user_id']) {
+            ResponseHelper::forbidden('You can only view your own payment schedule');
         }
 
         $loan_application_id = $app_result['id'];
@@ -118,7 +126,10 @@ switch ($method) {
             ResponseHelper::forbidden('Invalid CSRF token');
         }
 
-        if (!in_array($_SESSION['role'], ['accountant', 'admin'])) {
+        $identity = $db->prepare('SELECT role FROM users WHERE user_id = ? AND is_active = 1');
+        $identity->execute([(int)$_SESSION['user_id']]);
+        $role = strtolower((string)$identity->fetchColumn());
+        if (!in_array($role, ['accountant', 'admin'], true)) {
             ResponseHelper::forbidden('Only accountants and admins can generate payment schedules');
         }
 
@@ -127,7 +138,7 @@ switch ($method) {
         }
 
         // First get the loan application ID from the application_id string
-        $app_query = "SELECT id FROM loan_applications WHERE application_id = :application_id";
+        $app_query = "SELECT id, user_id FROM loan_applications WHERE application_id = :application_id";
         $app_stmt = $db->prepare($app_query);
         $app_stmt->bindParam(":application_id", $data->application_id);
         $app_stmt->execute();

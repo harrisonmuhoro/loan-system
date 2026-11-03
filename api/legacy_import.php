@@ -151,6 +151,90 @@ function importAudit(PDO $db, string $entity, int $entityId, string $action, int
     $stmt->execute();
 }
 
+function beginValidationAttempt(PDO $db, array $batch, int $actor): int
+{
+    $next = $db->prepare(
+        'SELECT COALESCE(MAX(attempt_number), 0) + 1
+           FROM legacy_import_validation_attempts
+          WHERE import_batch_id = ?'
+    );
+    $next->execute([(int)$batch['import_batch_id']]);
+    $attemptNumber = (int)$next->fetchColumn();
+
+    $insert = $db->prepare(
+        'INSERT INTO legacy_import_validation_attempts
+            (import_batch_id, attempt_number, validated_by, source_file_hash)
+         VALUES (?, ?, ?, ?)'
+    );
+    $insert->execute([
+        (int)$batch['import_batch_id'],
+        $attemptNumber,
+        $actor,
+        $batch['source_file_hash'] ?? null
+    ]);
+
+    return (int)$db->lastInsertId();
+}
+
+function recordValidationRow(PDO $db, int $attemptId, array $row, array $normalized, ?string $sourceRef): void
+{
+    $stmt = $db->prepare(
+        'INSERT INTO legacy_import_validation_rows
+            (validation_attempt_id, source_row_number, source_data, normalized_name,
+             normalized_pf_number, normalized_national_id, source_reference,
+             amount, validation_state, error_message)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    );
+    $stmt->execute([
+        $attemptId,
+        (int)$row['source_row_number'],
+        json_encode($row['raw'], JSON_UNESCAPED_UNICODE),
+        $normalized['name'],
+        $normalized['pf_number'],
+        $normalized['national_id'],
+        $sourceRef,
+        $normalized['amount'],
+        $normalized['state'],
+        empty($normalized['errors']) ? null : implode('; ', $normalized['errors'])
+    ]);
+}
+
+function handleDuplicateResolution(PDO $db, array $data, int $actor): void
+{
+    requireImportPermission($db, 'legacy.import');
+    $recordId = importInt($data, 'import_record_id');
+    $candidateId = isset($data['candidate_record_id']) && $data['candidate_record_id'] !== null
+        ? importInt($data, 'candidate_record_id') : null;
+    $resolution = strtoupper(trim((string)($data['resolution'] ?? '')));
+    if (!in_array($resolution, ['SAME_PERSON', 'DIFFERENT_PERSON', 'UNRESOLVED'], true)) {
+        importResponse(false, 'resolution must be SAME_PERSON, DIFFERENT_PERSON, or UNRESOLVED', null, 422);
+    }
+    $reason = importText($data, 'reason', 1000);
+
+    $record = $db->prepare('SELECT import_record_id, validation_state FROM legacy_import_records WHERE import_record_id = ?');
+    $record->execute([$recordId]);
+    if (!$record->fetch(PDO::FETCH_ASSOC)) {
+        importResponse(false, 'Import record not found', null, 404);
+    }
+
+    $insert = $db->prepare(
+        'INSERT INTO legacy_duplicate_resolutions
+            (import_record_id, candidate_record_id, resolution, reason, resolved_by)
+         VALUES (?, ?, ?, ?, ?)'
+    );
+    $insert->execute([$recordId, $candidateId, $resolution, $reason, $actor]);
+    $resolutionId = (int)$db->lastInsertId();
+    importAudit($db, 'legacy_import_record', $recordId, 'DUPLICATE_RESOLUTION', $actor, $reason, [
+        'resolution_id' => $resolutionId,
+        'resolution' => $resolution,
+        'candidate_record_id' => $candidateId
+    ]);
+    importResponse(true, 'Duplicate decision recorded without merging source records', [
+        'duplicate_resolution_id' => $resolutionId,
+        'resolution' => $resolution
+    ], 201);
+}
+
 function normalizeHeader(string $header): string
 {
     $header = mb_strtolower(trim($header));
@@ -597,7 +681,12 @@ function handleValidate(PDO $db, array $data, int $actor): void
         }
 
         $rows = parseImportFile($path, pathinfo($batch['source_filename'], PATHINFO_EXTENSION));
-        $db->prepare("DELETE FROM legacy_import_records WHERE import_batch_id = ?")->execute([$batchId]);
+        $attemptId = beginValidationAttempt($db, $batch, $actor);
+        $existingRecords = $db->prepare(
+            'SELECT COUNT(*) FROM legacy_import_records WHERE import_batch_id = ?'
+        );
+        $existingRecords->execute([$batchId]);
+        $isFirstAttempt = (int)$existingRecords->fetchColumn() === 0;
 
         $seen = [];
         $valid = $invalid = $duplicates = 0;
@@ -632,18 +721,15 @@ function handleValidate(PDO $db, array $data, int $actor): void
                 $invalid++;
             }
 
-            $insert->execute([
-                $batchId,
-                $row['source_row_number'],
-                json_encode($row['raw'], JSON_UNESCAPED_UNICODE),
-                $normalized['name'],
-                $normalized['pf_number'],
-                $normalized['national_id'],
-                $sourceRef,
-                $normalized['amount'],
-                $normalized['state'],
-                empty($normalized['errors']) ? null : implode('; ', $normalized['errors'])
-            ]);
+            if ($isFirstAttempt) {
+                $insert->execute([
+                    $batchId, $row['source_row_number'], json_encode($row['raw'], JSON_UNESCAPED_UNICODE),
+                    $normalized['name'], $normalized['pf_number'], $normalized['national_id'], $sourceRef,
+                    $normalized['amount'], $normalized['state'],
+                    empty($normalized['errors']) ? null : implode('; ', $normalized['errors'])
+                ]);
+            }
+            recordValidationRow($db, $attemptId, $row, $normalized, $sourceRef);
         }
 
         $status = $valid > 0 ? 'PREVIEWED' : 'REJECTED';
@@ -657,11 +743,20 @@ function handleValidate(PDO $db, array $data, int $actor): void
               WHERE import_batch_id = ?"
         )->execute([$status, count($rows), $valid, $invalid, $duplicates, $batchId, $batchId]);
 
+        $db->prepare(
+            'UPDATE legacy_import_validation_attempts
+                SET validation_status = \'COMPLETED\', detected_count = ?, valid_count = ?,
+                    invalid_count = ?, duplicate_count = ?, completed_at = CURRENT_TIMESTAMP
+              WHERE validation_attempt_id = ?'
+        )->execute([count($rows), $valid, $invalid, $duplicates, $attemptId]);
+
         importAudit($db, 'legacy_import_batch', $batchId, 'IMPORT_VALIDATED', $actor, 'Source validation completed', [
             'detected' => count($rows),
             'valid' => $valid,
             'invalid' => $invalid,
-            'duplicates' => $duplicates
+            'duplicates' => $duplicates,
+            'validation_attempt_id' => $attemptId,
+            'history_preserved' => !$isFirstAttempt
         ]);
 
         $db->commit();
@@ -1161,6 +1256,9 @@ try {
             break;
         case 'RECONCILE_EXISTING':
             handleReconcileExisting($db, $actor);
+            break;
+        case 'RESOLVE_DUPLICATE':
+            handleDuplicateResolution($db, $data, $actor);
             break;
         default:
             importResponse(false, 'Unknown legacy import action', null, 422);

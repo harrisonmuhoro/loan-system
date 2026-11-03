@@ -1,0 +1,8 @@
+# Uploaded financial source files must never be served as static content.
+Options -Indexes
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Deny from all
+</IfModule>

@@ -24,7 +24,6 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Set response headers
 header('Content-Type: application/json');
-header('Access-Control-Allow-Credentials: true');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
 
@@ -698,7 +697,7 @@ function handlePostRequest($db) {
         
         error_log('✗ Payment recording failed: ' . $e->getMessage());
         error_log('Stack trace: ' . $e->getTraceAsString());
-        sendResponse(false, 'Failed to record payment: ' . $e->getMessage(), null, 500);
+        sendResponse(false, 'Failed to record payment', null, 500);
     }
 }
 
@@ -770,11 +769,7 @@ if (isset($_SESSION['viewing_as_loanee']) && $_SESSION['viewing_as_loanee'] === 
             }
             
             // Verify ownership
-            $isOwner = (
-                (int)$loan['user_id'] === (int)$userId ||
-                (string)$loan['pf_number'] === (string)$pfNumber ||
-                (string)$loan['id_number'] === (string)$idNumber
-            );
+            $isOwner = (int)$loan['user_id'] === (int)$userId;
             
             if (!$isOwner) {
                 error_log("Access denied - user does not own this loan");
@@ -814,16 +809,12 @@ if (isset($_SESSION['viewing_as_loanee']) && $_SESSION['viewing_as_loanee'] === 
         // Loanee can only see their own payments
         else {
             // Get user's loan IDs first
-            $loansQuery = "SELECT application_id 
-                          FROM loan_applications 
-                          WHERE user_id = :user_id 
-                             OR pf_number = :pf_number 
-                             OR id_number = :id_number";
+            $loansQuery = "SELECT application_id
+                          FROM loan_applications
+                          WHERE user_id = :user_id";
             
             $loansStmt = $db->prepare($loansQuery);
             $loansStmt->bindParam(":user_id", $userId);
-            $loansStmt->bindParam(":pf_number", $pfNumber);
-            $loansStmt->bindParam(":id_number", $idNumber);
             $loansStmt->execute();
             $loans = $loansStmt->fetchAll(PDO::FETCH_ASSOC);
             

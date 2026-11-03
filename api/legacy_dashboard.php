@@ -24,8 +24,14 @@ try {
     $summary = $db->query(
         "SELECT
             COUNT(*) AS total_accounts,
-            COALESCE(SUM((SELECT COALESCE(SUM(t.debit_amount)-SUM(t.credit_amount),0)
-                          FROM legacy_transactions t WHERE t.legacy_account_id=a.legacy_account_id)),0) AS outstanding_balance,
+            COALESCE(SUM(CASE WHEN a.migration_status <> 'MIGRATED' THEN
+                GREATEST((SELECT COALESCE(SUM(t.debit_amount)-SUM(t.credit_amount),0)
+                            FROM legacy_transactions t WHERE t.legacy_account_id=a.legacy_account_id),0)
+                ELSE 0 END),0) AS outstanding_balance,
+            COALESCE(SUM(CASE WHEN a.migration_status='MIGRATED' THEN
+                (SELECT COALESCE(MAX(m.balance_at_migration),0) FROM legacy_migrations m
+                  WHERE m.legacy_account_id=a.legacy_account_id AND m.migration_status='EXECUTED')
+                ELSE 0 END),0) AS migrated_historical_balance,
             SUM(CASE WHEN a.dispute_status='OPEN' OR a.status='DISPUTED' THEN 1 ELSE 0 END) AS disputed_accounts,
             SUM(CASE WHEN a.status='OVERDUE' THEN 1 ELSE 0 END) AS overdue_accounts,
             SUM(CASE WHEN a.migration_status='MIGRATED' THEN 1 ELSE 0 END) AS migrated_accounts
@@ -48,7 +54,11 @@ try {
         "SELECT a.legacy_account_id,a.account_reference,a.status,a.dispute_status,a.migration_status,
                 d.full_name,d.pf_number,d.national_id,
                 COALESCE((SELECT SUM(t.debit_amount)-SUM(t.credit_amount)
-                            FROM legacy_transactions t WHERE t.legacy_account_id=a.legacy_account_id),0) AS balance
+                            FROM legacy_transactions t WHERE t.legacy_account_id=a.legacy_account_id),0) AS historical_ledger_balance,
+                CASE WHEN a.migration_status='MIGRATED' THEN 0 ELSE
+                    GREATEST(COALESCE((SELECT SUM(t.debit_amount)-SUM(t.credit_amount)
+                        FROM legacy_transactions t WHERE t.legacy_account_id=a.legacy_account_id),0),0)
+                END AS collectible_balance
            FROM legacy_debt_accounts a INNER JOIN legacy_debtors d ON d.legacy_debtor_id=a.legacy_debtor_id
           ORDER BY a.updated_at DESC, a.legacy_account_id DESC LIMIT 250"
     )->fetchAll(PDO::FETCH_ASSOC);
@@ -74,6 +84,7 @@ try {
         'summary' => [
             'total_accounts' => (int)($summary['total_accounts'] ?? 0),
             'outstanding_balance' => (float)($summary['outstanding_balance'] ?? 0),
+            'migrated_historical_balance' => (float)($summary['migrated_historical_balance'] ?? 0),
             'payment_count' => (int)($payment['payment_count'] ?? 0),
             'payment_amount' => (float)($payment['payment_amount'] ?? 0),
             'disputed_accounts' => (int)($summary['disputed_accounts'] ?? 0),

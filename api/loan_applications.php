@@ -8,7 +8,6 @@ ob_start();
 
 // Set JSON content type
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
 
@@ -49,7 +48,7 @@ function sendResponse($success, $message, $data = null, $statusCode = 200)
 }
 
 // Verify authentication
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role'])) {
+if (!isset($_SESSION['user_id'])) {
     sendResponse(false, 'Unauthorized', null, 401);
 }
 
@@ -59,10 +58,35 @@ try {
     $db = $database->getConnection();
 } catch (Exception $e) {
     error_log('Database error: ' . $e->getMessage());
-    sendResponse(false, 'Database connection failed: ' . $e->getMessage(), null, 500);
+    sendResponse(false, 'Database connection failed', null, 500);
 }
 
+$currentUserId = (int)$_SESSION['user_id'];
+$userStmt = $db->prepare('SELECT role, is_active FROM users WHERE user_id = ?');
+$userStmt->execute([$currentUserId]);
+$currentUser = $userStmt->fetch(PDO::FETCH_ASSOC);
+if (!$currentUser || (int)$currentUser['is_active'] !== 1) {
+    sendResponse(false, 'Unauthorized', null, 401);
+}
+$currentUserRole = strtolower((string)$currentUser['role']);
+$isStaff = in_array($currentUserRole, ['admin', 'accountant', 'cashier'], true);
+
 $method = $_SERVER['REQUEST_METHOD'];
+if ($method !== 'GET') {
+    $rawInput = file_get_contents('php://input');
+    $csrfInput = json_decode($rawInput, true);
+    if (!is_array($csrfInput)) {
+        $csrfInput = $_POST;
+    }
+    if (!validateCSRFToken($csrfInput['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null)) {
+        sendResponse(false, 'Invalid CSRF token', null, 403);
+    }
+    if ($method !== 'POST' || empty($csrfInput)) {
+        // Rewind is not available for php://input; JSON mutation branches read
+        // the already parsed payload below through this request-local variable.
+        $_REQUEST['_security_input'] = $csrfInput;
+    }
+}
 
 try {
     // GET - Retrieve loan applications
@@ -96,10 +120,13 @@ try {
                     accountant_processed_date,
                     created_at,
                     updated_at
-                  FROM loan_applications 
-                  ORDER BY application_date DESC";
+                  FROM loan_applications " . ($isStaff ? '' : 'WHERE user_id = :current_user_id ') .
+                  "ORDER BY application_date DESC";
         
         $stmt = $db->prepare($query);
+        if (!$isStaff) {
+            $stmt->bindValue(':current_user_id', $currentUserId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         
         $loans = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -108,7 +135,7 @@ try {
     
     // POST - Create new loan application
     elseif ($method === 'POST') {
-        if (!in_array($_SESSION['user_role'], ['loanee', 'admin', 'cashier'])) {
+        if (!in_array($currentUserRole, ['loanee', 'admin', 'cashier'], true)) {
             sendResponse(false, 'Permission denied', null, 403);
         }
         
@@ -131,6 +158,7 @@ try {
         
         // Insert loan application
         $query = "INSERT INTO loan_applications (
+                    user_id,
                     application_id,
                     full_name,
                     id_number,
@@ -155,6 +183,7 @@ try {
                     status,
                     application_date
                   ) VALUES (
+                    :user_id,
                     :application_id,
                     :full_name,
                     :id_number,
@@ -184,6 +213,7 @@ try {
         // bindParam() requires variables by reference; using inline array
         // expressions here caused normal-loan creation to fatal under PHP 8.
         $stmt->execute([
+            ':user_id' => $currentUserId,
             ':application_id' => $application_id,
             ':full_name' => $input['full_name'],
             ':id_number' => $input['id_number'],
@@ -219,11 +249,11 @@ try {
     
     // PUT - Update loan application
     elseif ($method === 'PUT') {
-        if (!in_array($_SESSION['user_role'], ['admin', 'cashier', 'accountant'])) {
+        if (!$isStaff) {
             sendResponse(false, 'Permission denied', null, 403);
         }
         
-        $id = $_GET['id'] ?? null;
+        $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT);
         
         if (!$id) {
             sendResponse(false, 'Loan ID is required', null, 400);
@@ -256,18 +286,21 @@ try {
         }
         
         // Add processed date based on user role
-        if ($_SESSION['user_role'] === 'cashier') {
+        if ($currentUserRole === 'cashier') {
             $query .= ", cashier_processed_date = NOW()";
-        } elseif ($_SESSION['user_role'] === 'accountant') {
+        } elseif ($currentUserRole === 'accountant') {
             $query .= ", accountant_processed_date = NOW()";
         }
         
-        $query .= " WHERE id = :id";
+        $query .= " WHERE id = :id" . ($isStaff ? '' : ' AND user_id = :current_user_id');
         
         $stmt = $db->prepare($query);
         $stmt->bindParam(':status', $status);
         $stmt->bindParam(':feedback', $feedback);
         $stmt->bindParam(':id', $id);
+        if (!$isStaff) {
+            $stmt->bindValue(':current_user_id', $currentUserId, PDO::PARAM_INT);
+        }
         
         if ($stmt->execute()) {
             sendResponse(true, 'Loan application updated successfully');
@@ -278,11 +311,11 @@ try {
     
     // DELETE - Delete loan applications
     elseif ($method === 'DELETE') {
-        if ($_SESSION['user_role'] !== 'admin') {
+        if ($currentUserRole !== 'admin') {
             sendResponse(false, 'Only admins can delete loan applications', null, 403);
         }
         
-        $id = $_GET['id'] ?? null;
+        $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT);
         
         if ($id) {
             // Delete specific loan
@@ -309,8 +342,8 @@ try {
     
 } catch (PDOException $e) {
     error_log('Loan applications API PDO error: ' . $e->getMessage());
-    sendResponse(false, 'Database error: ' . $e->getMessage(), null, 500);
+    sendResponse(false, 'A database error occurred', null, 500);
 } catch (Exception $e) {
     error_log('Loan applications API error: ' . $e->getMessage());
-    sendResponse(false, 'An error occurred: ' . $e->getMessage(), null, 500);
+    sendResponse(false, 'An internal server error occurred', null, 500);
 }

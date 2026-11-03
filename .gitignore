@@ -1,56 +1,116 @@
-# Local configuration and secrets
+# ==============================================================================
+# LOAN MANAGEMENT SYSTEM — .gitignore
+# ==============================================================================
+
+# 1. Local configuration, environment files, and secrets
 .env
 .env.*
 !.env.example
+!.env.dist
 /config/local.php
 /config/config.local.php
+/config/*.local.php
+*.pem
+*.key
+*.crt
 
-# Composer dependencies and generated autoload files
+# 2. Dependencies and package managers
 /vendor/
+composer.phar
+/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Runtime logs
+# 3. Runtime logs and error reports
 *.log
-/logs/
-/api/logs/
-/pages/logs/
+*.log.*
+/logs/*
+!/logs/.gitkeep
+/api/logs/*
+!/api/logs/.gitkeep
+/pages/logs/*
+!/pages/logs/.gitkeep
+error_log
+php_errors.log
+xdebug.log
 
-# Private uploads, imported documents, and generated exports
-/secure/*
-!/secure/.gitkeep
-/uploads/
-/storage/
-/tmp/
-/temp/
-/exports/
+# 4. Private uploads, imported documents, and generated exports
+/secure/**
+!/secure/**/
+!/secure/**/.gitkeep
+!/secure/**/.htaccess
+/uploads/**
+!/uploads/**/
+!/uploads/**/.gitkeep
+!/uploads/**/.htaccess
+/storage/**
+!/storage/**/
+!/storage/**/.gitkeep
+!/storage/**/.htaccess
+/tmp/**
+!/tmp/**/
+!/tmp/**/.gitkeep
+/temp/**
+!/temp/**/
+!/temp/**/.gitkeep
+/exports/**
+!/exports/**/
+!/exports/**/.gitkeep
 
-# Local database backups and generated dumps (keep schema/migration SQL tracked)
-/backups/
+# 5. Database backups, temporary dumps, and local test databases
+# (Repository schema and migration SQL in /scripts and root remain tracked)
+/backups/*
+!/backups/.gitkeep
 backup_*.json
 backup_*.sql
 dump_*.sql
 *_dump.sql
 *.bak
+*.sql.gz
+*.sql.zip
+*.sqlite
+*.sqlite3
+*.db
 
-# Test and tooling caches
+# 6. Test artifacts, session caches, and profiling output
 /.phpunit.result.cache
 /.phpunit.cache/
+/coverage/
+*.cookies.txt
+*.cookie
+sess_*
+/tests/tmp/
 /php.exe
 /.php-version
 
-# IDE and operating-system files
+# 7. IDE, editor, and operating-system files
 /.idea/
 /.vscode/*
 !/.vscode/extensions.json
 !/.vscode/tasks.json
+!/.vscode/launch.json
 *.code-workspace
+*.sublime-project
+*.sublime-workspace
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+Thumbs.db:encryptable
 desktop.ini
 
-# Temporary editor and patch files
+# 8. Temporary editor and patch files
 *.swp
 *.swo
+*~
 *.tmp
 *.temp
 *.orig
 *.rej
+*.diff
+*.patch

@@ -5,6 +5,13 @@ declare(strict_types=1);
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-cache, must-revalidate');
 
+// Bulk deletion is not an approved production operation. Keep this endpoint
+// disabled until a separately reviewed, environment-scoped maintenance tool
+// exists; do not allow a browser request to erase financial data.
+http_response_code(410);
+echo json_encode(['success' => false, 'message' => 'Bulk data deletion is disabled']);
+exit;
+
 session_start();
 
 // Authentication check

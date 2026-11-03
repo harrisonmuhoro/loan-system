@@ -25,7 +25,8 @@ function legacyAuthContext(PDO $db, int $userId): array
                 COALESCE(p.permission_key, \'\') AS permission_key,
                 COALESCE(up.allowed, rp.allowed, 0) AS permission_allowed
            FROM users u
-           LEFT JOIN legacy_role_permissions rp ON rp.role = u.role
+           LEFT JOIN legacy_role_permissions rp
+             ON rp.role = CONVERT(u.role USING utf8mb4) COLLATE utf8mb4_general_ci
            LEFT JOIN legacy_permissions p ON p.permission_id = rp.permission_id
            LEFT JOIN legacy_user_permissions up
              ON up.user_id = u.user_id AND up.permission_id = p.permission_id

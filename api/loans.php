@@ -4,6 +4,11 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/ApiHelper.php';
 
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../logs/api_loans.log');
+
 // Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     ApiHelper::sendJson(204, []);
@@ -19,13 +24,6 @@ if (!isset($_SESSION['user_id'])) {
     ApiHelper::logError('Unauthorized access attempt');
     ApiHelper::sendJson(401, ['success' => false, 'message' => 'Unauthorized – please login.']);
 }
-
-// Get current user info
- $currentUserId = $_SESSION['user_id'];
- $currentUserRole = $_SESSION['user_role'] ?? 'loanee';
- $currentPfNumber = $_SESSION['pf_number'] ?? '';
- $currentIdNumber = $_SESSION['id_number'] ?? '';
- $viewingAsLoanee = isset($_SESSION['viewing_as_loanee']) && $_SESSION['viewing_as_loanee'] === true;
 
 // Verify CSRF token for POST/PUT/DELETE
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
@@ -60,10 +58,18 @@ try {
     ApiHelper::sendJson(500, ['success' => false, 'message' => 'Database connection failed']);
 }
 
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
-ini_set('log_errors', 1);
-ini_set('error_log', __DIR__ . '/../logs/api_loans.log');
+// Resolve identity from the database after the connection is initialized.
+$currentUserId = (int)$_SESSION['user_id'];
+$identityStmt = $conn->prepare('SELECT role, pf_number, id_number, is_active FROM users WHERE user_id = ?');
+$identityStmt->execute([$currentUserId]);
+$identity = $identityStmt->fetch(PDO::FETCH_ASSOC);
+if (!$identity || (int)$identity['is_active'] !== 1) {
+    ApiHelper::sendJson(401, ['success' => false, 'message' => 'Unauthorized']);
+}
+$currentUserRole = strtolower((string)$identity['role']);
+$currentPfNumber = (string)($identity['pf_number'] ?? '');
+$currentIdNumber = (string)($identity['id_number'] ?? '');
+$viewingAsLoanee = isset($_SESSION['viewing_as_loanee']) && $_SESSION['viewing_as_loanee'] === true;
 
 // Clear output buffers
 while (ob_get_level()) {
@@ -72,10 +78,8 @@ while (ob_get_level()) {
 
 // Set headers
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
-header('Access-Control-Allow-Credentials: true');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
@@ -211,10 +215,8 @@ class LoanApplication
 
             // Add Role Logic
             if (!$canSeeAll) {
-                $whereClauses[] = "(user_id = :user_id OR pf_number = :pf_number OR id_number = :id_number)";
+                $whereClauses[] = "user_id = :user_id";
                 $params[':user_id'] = $userId;
-                $params[':pf_number'] = $pfNumber ?? '';
-                $params[':id_number'] = $idNumber ?? '';
             }
 
             // Combine WHERE clauses
@@ -253,17 +255,10 @@ class LoanApplication
                 $stmt->bindValue(':id', $applicationId, PDO::PARAM_STR);
             } else {
                 $sql = "SELECT * FROM v_unified_loans 
-                         WHERE application_id = :id 
-                         AND (
-                             user_id = :user_id 
-                             OR pf_number = :pf_number 
-                             OR id_number = :id_number
-                         )";
+                         WHERE application_id = :id AND user_id = :user_id";
                 $stmt = $this->conn->prepare($sql);
                 $stmt->bindValue(':id', $applicationId, PDO::PARAM_STR);
                 $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-                $stmt->bindValue(':pf_number', $pfNumber ?? '', PDO::PARAM_STR);
-                $stmt->bindValue(':id_number', $idNumber ?? '', PDO::PARAM_STR);
             }
             
             $stmt->execute();

@@ -4,20 +4,39 @@ if (!defined('INCLUDED')) {
     define('INCLUDED', true);
 }
 
-// Start session if not already started
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 // Environment detection
- $environment = getenv('APP_ENV') ?: 'development';
+$environment = getenv('APP_ENV') ?: 'development';
 define('ENVIRONMENT', $environment);
 
 // Database configuration
-define('DB_HOST', getenv('LOAN_DB_HOST') ?: 'localhost');
-define('DB_NAME', getenv('LOAN_DB_NAME') ?: 'loan_management');
-define('DB_USER', getenv('LOAN_DB_USER') ?: 'root');
-define('DB_PASS', getenv('LOAN_DB_PASS') ?: '');
+$dbHost = getenv('LOAN_DB_HOST');
+$dbName = getenv('LOAN_DB_NAME');
+$dbUser = getenv('LOAN_DB_USER');
+$dbPass = getenv('LOAN_DB_PASS');
+if (ENVIRONMENT === 'production'
+    && ($dbHost === false || $dbName === false || $dbUser === false || $dbPass === false
+        || trim((string)$dbHost) === '' || trim((string)$dbName) === ''
+        || trim((string)$dbUser) === '' || (string)$dbUser === 'root'
+        || (string)$dbPass === '')) {
+    error_log('Production database configuration is incomplete or uses an unsafe credential default');
+    throw new RuntimeException('Application configuration is unavailable');
+}
+define('DB_HOST', $dbHost !== false && $dbHost !== '' ? $dbHost : 'localhost');
+define('DB_NAME', $dbName !== false && $dbName !== '' ? $dbName : 'loan_management');
+define('DB_USER', $dbUser !== false && $dbUser !== '' ? $dbUser : 'root');
+define('DB_PASS', $dbPass !== false ? $dbPass : '');
+
+if (session_status() === PHP_SESSION_NONE) {
+    $secureCookie = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'secure' => $secureCookie,
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+    session_start();
+}
 
 // Application settings
 define('APP_NAME', 'loan-system');

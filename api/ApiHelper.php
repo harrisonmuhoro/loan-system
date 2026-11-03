@@ -14,10 +14,8 @@ class ApiHelper {
         // Set headers
         http_response_code($code);
         header('Content-Type: application/json');
-        header('Access-Control-Allow-Origin: *');
         header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
-        header('Access-Control-Allow-Credentials: true');
 
         // Send response
         echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
