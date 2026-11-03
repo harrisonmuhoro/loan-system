@@ -19,6 +19,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/legacy_authorization.php';
+require_once __DIR__ . '/../helpers/legacy_identity_helper.php';
 
 header('Content-Type: application/json');
 header('Cache-Control: no-cache, must-revalidate');
@@ -143,27 +144,8 @@ function migrationBalance(PDO $db, int $accountId): string
 
 function migrationMatchingLoans(PDO $db, array $account): array
 {
-    $conditions = [];
-    $params = [];
-    if (!empty($account['linked_user_id'])) {
-        $conditions[] = 'user_id = ?';
-        $params[] = (int)$account['linked_user_id'];
-    }
-    if (!empty($account['pf_number'])) {
-        $conditions[] = 'pf_number = ?';
-        $params[] = (string)$account['pf_number'];
-    }
-    if (!empty($account['national_id'])) {
-        $conditions[] = 'id_number = ?';
-        $params[] = (string)$account['national_id'];
-    }
-    if (!$conditions) return [];
-    $stmt = $db->prepare(
-        'SELECT id, application_id, user_id, pf_number, id_number, loan_amount
-           FROM loan_applications WHERE ' . implode(' OR ', $conditions) . ' ORDER BY id FOR UPDATE'
-    );
-    $stmt->execute($params);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $assessment = legacyAssessMigrationIdentityMatches($db, $account);
+    return $assessment['matches'];
 }
 
 function migrationRequest(PDO $db, array $data, int $actor): void
@@ -178,7 +160,7 @@ function migrationRequest(PDO $db, array $data, int $actor): void
     $db->beginTransaction();
     try {
         $accountStmt = $db->prepare(
-            'SELECT a.*, d.full_name, d.linked_user_id
+            'SELECT a.*, d.full_name, d.pf_number, d.national_id, d.linked_user_id
                FROM legacy_debt_accounts a
                INNER JOIN legacy_debtors d ON d.legacy_debtor_id = a.legacy_debtor_id
               WHERE a.legacy_account_id = ? FOR UPDATE'
@@ -189,6 +171,7 @@ function migrationRequest(PDO $db, array $data, int $actor): void
             throw new RuntimeException('Legacy debt account not found');
         }
 
+        $linkedLoan = null;
         if (!empty($account['linked_loan_application_id'])) {
             $linked = $db->prepare('SELECT id, loan_amount FROM loan_applications WHERE id=? FOR UPDATE');
             $linked->execute([(int)$account['linked_loan_application_id']]);
@@ -211,14 +194,29 @@ function migrationRequest(PDO $db, array $data, int $actor): void
             throw new RuntimeException('Only a positive legacy balance can be migrated');
         }
         $linkedId = (int)($account['linked_loan_application_id'] ?? 0);
-        $matches = migrationMatchingLoans($db, $account);
-        $linkedMatchExists = count(array_filter($matches, static fn(array $loan): bool => (int)$loan['id'] === $linkedId)) > 0;
-        if ($linkedId === 0 && $matches) {
+        $assessment = legacyAssessMigrationIdentityMatches($db, $account);
+        $matches = $assessment['matches'];
+
+        if ($assessment['status'] === 'CONFLICT') {
+            throw new RuntimeException('Conflicting PF number and national ID match found in normal loans; manual reconciliation is required before migration');
+        }
+        if ($assessment['status'] === 'AMBIGUOUS') {
+            throw new RuntimeException('Ambiguous normal loan identity match detected; manual reconciliation is required before migration');
+        }
+        if ($assessment['status'] === 'ALREADY_LINKED') {
+            throw new RuntimeException('Candidate normal loan is already linked to another legacy account');
+        }
+        if ($linkedId === 0 && !empty($matches)) {
             throw new RuntimeException('Existing normal loan identity match requires manual reconciliation before migration');
         }
-        if ($linkedId > 0 && !$linkedMatchExists) throw new RuntimeException('Existing loan link does not match debtor identity; manual reconciliation is required');
-        if ($linkedId > 0 && bccomp((string)$linkedLoan['loan_amount'], $balance, 4) !== 0) {
-            throw new RuntimeException('Existing linked normal loan balance differs; manual reconciliation is required');
+        if ($linkedId > 0) {
+            $linkedMatchExists = count(array_filter($matches, static fn(array $loan): bool => (int)$loan['id'] === $linkedId)) > 0;
+            if (!$linkedMatchExists) {
+                throw new RuntimeException('Existing loan link does not match debtor identity; manual reconciliation is required');
+            }
+            if ($linkedLoan && bccomp((string)$linkedLoan['loan_amount'], $balance, 4) !== 0) {
+                throw new RuntimeException('Existing linked normal loan balance differs; manual reconciliation is required');
+            }
         }
 
         $action = $db->prepare(
@@ -240,7 +238,10 @@ function migrationRequest(PDO $db, array $data, int $actor): void
         $migrationId = (int)$db->lastInsertId();
 
         migrationAudit($db, 'legacy_migration', $migrationId, 'MIGRATION_REQUESTED', $actor, $reason, $reference, null, [
-            'account_id' => $accountId, 'balance' => (float)$balance, 'migration_date' => $date
+            'account_id' => $accountId,
+            'balance' => (float)$balance,
+            'migration_date' => $date,
+            'identity_assessment' => $assessment['audit_payload']
         ]);
         $db->commit();
         migrationResponse(true, 'Migration request created', [
@@ -328,11 +329,22 @@ function migrationExecute(PDO $db, array $data, int $actor): void
         }
 
         $linkedId = (int)($account['linked_loan_application_id'] ?? 0);
-        $matches = migrationMatchingLoans($db, $account);
-        $linkedMatchExists = count(array_filter($matches, static fn(array $candidate): bool => (int)$candidate['id'] === $linkedId)) > 0;
-        if ($linkedId === 0 && $matches) {
+        $assessment = legacyAssessMigrationIdentityMatches($db, $account);
+        $matches = $assessment['matches'];
+
+        if ($assessment['status'] === 'CONFLICT') {
+            throw new RuntimeException('Conflicting PF number and national ID match found in normal loans; manual reconciliation is required before migration');
+        }
+        if ($assessment['status'] === 'AMBIGUOUS') {
+            throw new RuntimeException('Ambiguous normal loan identity match detected; manual reconciliation is required before migration');
+        }
+        if ($assessment['status'] === 'ALREADY_LINKED') {
+            throw new RuntimeException('Candidate normal loan is already linked to another legacy account');
+        }
+        if ($linkedId === 0 && !empty($matches)) {
             throw new RuntimeException('Existing normal loan identity match requires manual reconciliation before migration');
         }
+        $linkedMatchExists = count(array_filter($matches, static fn(array $candidate): bool => (int)$candidate['id'] === $linkedId)) > 0;
         if ($linkedId > 0 && !$linkedMatchExists) throw new RuntimeException('Existing loan link does not match debtor identity; manual reconciliation is required');
 
         if ($loan && bccomp((string)$loan['loan_amount'], (string)$migration['balance_at_migration'], 4) !== 0) {
@@ -388,7 +400,8 @@ function migrationExecute(PDO $db, array $data, int $actor): void
 
         migrationAudit($db, 'legacy_migration', (int)$migration['legacy_migration_id'], 'MIGRATION_EXECUTED', $actor, $reason, $action['request_reference'], null, [
             'legacy_account_id' => $accountId, 'loan_application_id' => (int)$loan['id'],
-            'balance' => (float)$migration['balance_at_migration'], 'migration_date' => $migration['migration_date']
+            'balance' => (float)$migration['balance_at_migration'], 'migration_date' => $migration['migration_date'],
+            'identity_assessment' => $assessment['audit_payload']
         ]);
         $db->commit();
         migrationResponse(true, 'Legacy account migrated to normal loan', [

@@ -65,7 +65,7 @@ Phase 13 now passes for the representative production-shaped test environment. T
 
 Verified: one legacy account per debtor, multiple ledger components, ledger balance as debits minus credits, overpayment credits, controlled closed-year posting, maker/checker approvals, Accountant + Admin write-off approval, immutable reversals, migration-date routing, disputed-account payments, and single unified migrated exposure.
 
-Partially verified: identity canonicalization. `normalizeValue()` trims values, but does not normalize punctuation, separators, or other approved formatting variants for PF numbers and national IDs before matching. This can produce inconsistent duplicate detection for formatting variants and requires remediation before importing real historical data.
+Verified in the remediated scope: shared identity canonicalization trims, uppercases, removes harmless separators while preserving leading zeroes, and blocks ambiguous or conflicting migration matches. Historical-data behavior still requires a protected copy of actual production records.
 
 ## 10. Financial reconciliation results
 
@@ -102,6 +102,6 @@ Production configuration rejects unsafe database defaults and disables displayed
 
 ## 16. Final release decision
 
-The audit found no demonstrated duplicate migration, double-counting, unauthorized financial operation, successful deletion of protected financial history, unresolved critical/high security finding, or unexplained representative financial variance. The remaining items are operational setup and monitoring requirements.
+The audit found no demonstrated duplicate migration, double-counting, unauthorized financial operation, successful deletion of protected financial history, unresolved critical/high security finding, or unexplained representative financial variance. However, actual historical production compatibility was not testable because the live database contains no historical records, and the independent historical-data staging gate remains outstanding.
 
-PRODUCTION READY
+PRODUCTION BLOCKED

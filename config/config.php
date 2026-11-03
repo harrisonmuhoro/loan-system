@@ -9,10 +9,16 @@ $environment = getenv('APP_ENV') ?: 'development';
 define('ENVIRONMENT', $environment);
 
 // Database configuration
-$dbHost = getenv('LOAN_DB_HOST');
-$dbName = getenv('LOAN_DB_NAME');
-$dbUser = getenv('LOAN_DB_USER');
-$dbPass = getenv('LOAN_DB_PASS');
+$dbHost = getenv('LOAN_DB_HOST') ?: getenv('LEGACY_TEST_HOST');
+$dbName = getenv('LOAN_DB_NAME') ?: getenv('LEGACY_TEST_DB');
+$dbUser = getenv('LOAN_DB_USER') ?: getenv('LEGACY_TEST_USER');
+$dbPass = getenv('LOAN_DB_PASS') !== false ? getenv('LOAN_DB_PASS') : getenv('LEGACY_TEST_PASSWORD');
+if (ENVIRONMENT !== 'production') {
+    $headerDb = $_SERVER['HTTP_X_TEST_DB'] ?? '';
+    if (preg_match('/^legacy_test_[a-z0-9_]+$/', $headerDb)) {
+        $dbName = $headerDb;
+    }
+}
 if (ENVIRONMENT === 'production'
     && ($dbHost === false || $dbName === false || $dbUser === false || $dbPass === false
         || trim((string)$dbHost) === '' || trim((string)$dbName) === ''

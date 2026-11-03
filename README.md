@@ -14,7 +14,7 @@ PHP/MySQL application for staff loan applications, approvals, repayments, fundin
 
 ## Technology and structure
 
-- PHP 7.4+, MySQL/MariaDB, Apache, PDO, JavaScript Fetch API.
+- PHP 8.0+, MySQL/MariaDB, Apache, PDO, JavaScript Fetch API.
 - PhpSpreadsheet and Smalot PDF Parser for supported imports.
 
 ```text

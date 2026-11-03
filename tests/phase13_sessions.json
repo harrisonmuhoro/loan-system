@@ -1,0 +1,30 @@
+{
+    "cashier": {
+        "user_id": 4,
+        "role": "cashier",
+        "session_id": "phase13-cashier",
+        "csrf_token": "csrf-cashier-68293a34ac103dc4",
+        "cookie_file": "D:\\wamp64\\www\\loan-system\\tests\/accept-cashier.cookies.txt"
+    },
+    "accountant": {
+        "user_id": 3,
+        "role": "accountant",
+        "session_id": "phase13-accountant",
+        "csrf_token": "csrf-accountant-a5ce850a7cc1a53c",
+        "cookie_file": "D:\\wamp64\\www\\loan-system\\tests\/accept-accountant.cookies.txt"
+    },
+    "admin": {
+        "user_id": 2,
+        "role": "admin",
+        "session_id": "phase13-admin",
+        "csrf_token": "csrf-admin-57fbb8e2eae21d70",
+        "cookie_file": "D:\\wamp64\\www\\loan-system\\tests\/accept-admin.cookies.txt"
+    },
+    "loanee": {
+        "user_id": 1,
+        "role": "loanee",
+        "session_id": "phase13-loanee",
+        "csrf_token": "csrf-loanee-812d9fc86ece928d",
+        "cookie_file": "D:\\wamp64\\www\\loan-system\\tests\/accept-loanee.cookies.txt"
+    }
+}

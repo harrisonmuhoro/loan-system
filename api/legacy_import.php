@@ -24,6 +24,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/legacy_authorization.php';
+require_once __DIR__ . '/../helpers/legacy_identity_helper.php';
 
 header('Content-Type: application/json');
 header('Cache-Control: no-cache, must-revalidate');
@@ -244,31 +245,17 @@ function normalizeHeader(string $header): string
 
 function normalizeValue(?string $value): ?string
 {
-    $value = trim((string)$value);
-    return $value === '' ? null : $value;
+    return legacyNormalizeValue($value);
 }
 
 function normalizeIdentity(?string $value): ?string
 {
-    $value = normalizeValue($value);
-    if ($value === null) {
-        return null;
-    }
-
-    // Preserve leading zeroes while making harmless separators/case irrelevant.
-    $value = strtoupper(preg_replace('/[^A-Z0-9]/i', '', $value) ?? '');
-    return $value === '' ? null : $value;
+    return legacyNormalizeIdentity($value);
 }
 
 function normalizeName(?string $value): ?string
 {
-    $value = normalizeValue($value);
-    if ($value === null) {
-        return null;
-    }
-
-    $value = preg_replace('/\s+/u', ' ', $value) ?? $value;
-    return mb_strtoupper($value);
+    return legacyNormalizeName($value);
 }
 
 function parseAmount($value): ?string

@@ -53,14 +53,20 @@ try {
 
     $tx = $db->prepare('INSERT INTO legacy_transactions (legacy_account_id,financial_year_id,transaction_reference,transaction_type,debit_amount,credit_amount,transaction_date,description,recorded_by) VALUES (?,?,?,?,?,?,?,?,?)');
     $tx->execute([$normal,$year,'P13-REP-PAY-'.$token,'PAYMENT',0,200,'2095-02-01','representative payment',$requester]);
+    $normalPayId = (int)$db->lastInsertId();
+    $db->prepare("INSERT INTO legacy_payment_details (legacy_transaction_id,payment_method,payment_date,transaction_number,reconciliation_state) VALUES (?, 'CASH','2095-02-01',?,'RECONCILED')")->execute([$normalPayId,'P13-REP-PAY-REC-'.$token]);
     $tx->execute([$overpaid,$year,'P13-REP-OVER-'.$token,'PAYMENT',0,150,'2095-02-01','representative overpayment',$requester]);
     $payId = (int)$db->lastInsertId();
     $fund = $db->prepare("INSERT INTO funding_accounts(name,balance) VALUES(?,?)");
     $fund->execute(['P13 Representative Collections ' . $token, 150]);
     $fundId = (int)$db->lastInsertId();
     $db->prepare("INSERT INTO legacy_payment_details (legacy_transaction_id,payment_method,payment_date,transaction_number,funding_account_id,reconciliation_state) VALUES (?, 'CASH','2095-02-01',?,?, 'RECONCILED')")->execute([$payId,'P13-REP-REC-'.$token,$fundId]);
+    $db->prepare("INSERT INTO funding_transactions (funding_account_id,amount,transaction_type,reference,created_by) VALUES (?, 150, 'deposit', ?, ?)")->execute([$fundId, 'P13-REP-REC-'.$token, $requester]);
     $tx->execute([$overpaid,$year,'P13-REP-REV-'.$token,'PAYMENT_REVERSAL',150,0,'2095-03-01','representative reversal',$requester]);
+    $db->prepare("INSERT INTO funding_transactions (funding_account_id,amount,transaction_type,reference,created_by) VALUES (?, 150, 'refund', ?, ?)")->execute([$fundId, 'REV-P13-REP-REC-'.$token, $requester]);
     $tx->execute([$disputed,$year,'P13-REP-DIS-PAY-'.$token,'PAYMENT',0,100,'2095-02-01','payment while disputed',$requester]);
+    $disPayId = (int)$db->lastInsertId();
+    $db->prepare("INSERT INTO legacy_payment_details (legacy_transaction_id,payment_method,payment_date,transaction_number,reconciliation_state) VALUES (?, 'CASH','2095-02-01',?,'RECONCILED')")->execute([$disPayId,'P13-REP-DIS-REC-'.$token]);
     $tx->execute([$waived,$year,'P13-REP-WAIVE-'.$token,'WAIVER',0,300,'2095-02-01','representative waiver',$requester]);
     $tx->execute([$written,$year,'P13-REP-WRITE-'.$token,'WRITE_OFF',0,400,'2095-02-01','representative write-off',$requester]);
 

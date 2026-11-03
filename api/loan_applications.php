@@ -317,22 +317,19 @@ try {
         
         $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT);
         
-        if ($id) {
-            // Delete specific loan
-            $query = "DELETE FROM loan_applications WHERE id = :id";
-            $stmt = $db->prepare($query);
-            $stmt->bindParam(':id', $id);
-        } else {
-            // Delete all loans
-            $query = "DELETE FROM loan_applications";
-            $stmt = $db->prepare($query);
+        if (!$id || $id <= 0) {
+            sendResponse(false, 'A valid loan application ID is required; bulk deletion is disabled', null, 400);
         }
         
+        // Delete specific loan
+        $query = "DELETE FROM loan_applications WHERE id = :id";
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':id', $id);
+        
         if ($stmt->execute()) {
-            $message = $id ? 'Loan application deleted successfully' : 'All loan applications deleted successfully';
-            sendResponse(true, $message);
+            sendResponse(true, 'Loan application deleted successfully');
         } else {
-            sendResponse(false, 'Failed to delete loan application(s)', null, 500);
+            sendResponse(false, 'Failed to delete loan application', null, 500);
         }
     }
     
