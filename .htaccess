@@ -1,6 +1,9 @@
 # Prevent directory browsing
 Options -Indexes
 
+# Custom error pages
+ErrorDocument 404 /loan-system/404.php
+
 # Enable error logging
 php_flag display_errors Off
 php_flag log_errors On

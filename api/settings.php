@@ -29,6 +29,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // Include required files
 require_once __DIR__ . '/../config/database.php';
 
+// Set session params to match admin portal to avoid cookie conflicts
+session_set_cookie_params([
+    'lifetime' => 36000,
+    'path' => '/'
+]);
 // Start session
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -79,7 +84,7 @@ try {
         $allowedRoles = ['admin', 'cashier', 'accountant'];
 
         if (!in_array($_SESSION['user_role'], $allowedRoles)) {
-            sendResponse(false, 'Access denied. You do not have permission to view settings.', null, 403);
+            sendResponse(false, 'Access denied. You do not have permission to view settings. Your role: ' . $_SESSION['user_role'], null, 403);
         }
 
         $key = $_GET['key'] ?? '';

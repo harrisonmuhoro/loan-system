@@ -25,10 +25,13 @@ class User {
     // Create new user
     public function create() {
         try {
+            // Start transaction
+            $this->conn->beginTransaction();
+            
             // Hash password
             $hashed_password = password_hash($this->password, PASSWORD_DEFAULT);
             
-            // Insert query
+            // Insert into users table
             $query = "INSERT INTO " . $this->table_name . "
                      (full_name, email, id_number, pf_number, password, role, is_active, can_apply_for_loan)
                      VALUES
@@ -55,22 +58,85 @@ class User {
             $stmt->bindParam(":can_apply_for_loan", $can_apply_for_loan);
             
             // Execute query
-            if($stmt->execute()) {
-                $this->user_id = $this->conn->lastInsertId();
-                return true;
+            if(!$stmt->execute()) {
+                $this->conn->rollBack();
+                return false;
             }
             
-            return false;
+            $this->user_id = $this->conn->lastInsertId();
+            
+            // Insert into role-specific table
+            $roleInserted = $this->insertIntoRoleTable($hashed_password);
+            
+            if(!$roleInserted) {
+                $this->conn->rollBack();
+                return false;
+            }
+            
+            // Commit transaction
+            $this->conn->commit();
+            return true;
+            
         } catch (PDOException $e) {
+            // Rollback on error
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
             error_log("User creation error: " . $e->getMessage());
             return false;
         }
     }
     
-    // Update user
+    // Helper method to insert into role-specific tables
+    private function insertIntoRoleTable($hashed_password) {
+        try {
+            switch($this->role) {
+                case 'admin':
+                    $query = "INSERT INTO admins (pf_number, full_name, email, password_hash, role, is_active, created_at, updated_at)
+                             VALUES (:pf_number, :full_name, :email, :password_hash, 'admin', 1, NOW(), NOW())";
+                    break;
+                    
+                case 'accountant':
+                    $query = "INSERT INTO accountants (pf_number, full_name, email, password_hash, role, is_active, created_at, updated_at)
+                             VALUES (:pf_number, :full_name, :email, :password_hash, 'accountant', 1, NOW(), NOW())";
+                    break;
+                    
+                case 'cashier':
+                    $query = "INSERT INTO cashiers (pf_number, full_name, email, password_hash, role, is_active, created_at, updated_at)
+                             VALUES (:pf_number, :full_name, :email, :password_hash, 'cashier', 1, NOW(), NOW())";
+                    break;
+                    
+                case 'loanee':
+                    $query = "INSERT INTO loanee (pf_number, full_name, email, password_hash, role, is_active, created_at, updated_at)
+                             VALUES (:pf_number, :full_name, :email, :password_hash, 'loanee', 1, NOW(), NOW())";
+                    break;
+                    
+                default:
+                    error_log("Unknown role: " . $this->role);
+                    return false;
+            }
+            
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(":pf_number", $this->pf_number);
+            $stmt->bindParam(":full_name", $this->full_name);
+            $stmt->bindParam(":email", $this->email);
+            $stmt->bindParam(":password_hash", $hashed_password);
+            
+            return $stmt->execute();
+            
+        } catch (PDOException $e) {
+            error_log("Role table insertion error: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    // Also update the update() method to sync with role tables
     public function update() {
         try {
-            // Update query
+            // Start transaction
+            $this->conn->beginTransaction();
+            
+            // Update users table
             $query = "UPDATE " . $this->table_name . "
                      SET full_name = :full_name,
                          email = :email,
@@ -90,11 +156,10 @@ class User {
             $this->pf_number = htmlspecialchars(strip_tags($this->pf_number));
             $this->role = htmlspecialchars(strip_tags($this->role));
             
-            // Handle can_apply_for_loan - if not set, keep current value
+            // Handle can_apply_for_loan
             if (isset($this->can_apply_for_loan)) {
                 $can_apply_for_loan = (int)$this->can_apply_for_loan;
             } else {
-                // Get current value from database
                 $query = "SELECT can_apply_for_loan FROM " . $this->table_name . " WHERE user_id = :user_id";
                 $stmt = $this->conn->prepare($query);
                 $stmt->bindParam(":user_id", $this->user_id);
@@ -111,13 +176,70 @@ class User {
             $stmt->bindParam(":can_apply_for_loan", $can_apply_for_loan);
             $stmt->bindParam(":user_id", $this->user_id);
             
-            // Execute query
-            return $stmt->execute();
+            if(!$stmt->execute()) {
+                $this->conn->rollBack();
+                return false;
+            }
+            
+            // Update role-specific table
+            $roleUpdated = $this->updateRoleTable();
+            
+            if(!$roleUpdated) {
+                $this->conn->rollBack();
+                return false;
+            }
+            
+            // Commit transaction
+            $this->conn->commit();
+            return true;
+            
         } catch (PDOException $e) {
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
             error_log("User update error: " . $e->getMessage());
             return false;
         }
     }
+    
+    // Helper method to update role-specific tables
+private function updateRoleTable() {
+    try {
+        switch($this->role) {
+            case 'admin':
+                $table = 'admins';
+                break;
+            case 'accountant':
+                $table = 'accountants';
+                break;
+            case 'cashier':
+                $table = 'cashiers';
+                break;
+            case 'loanee':
+                $table = 'loanee';
+                break;
+            default:
+                return false;
+        }
+        
+        $query = "UPDATE {$table}
+                 SET full_name = :full_name,
+                     email = :email,
+                     updated_at = NOW()
+                 WHERE pf_number = :pf_number";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":full_name", $this->full_name);
+        $stmt->bindParam(":email", $this->email);
+        $stmt->bindParam(":pf_number", $this->pf_number);
+        
+        return $stmt->execute();
+        
+    } catch (PDOException $e) {
+        error_log("Role table update error: " . $e->getMessage());
+        return false;
+    }
+}
     
     // Delete user
     public function delete() {

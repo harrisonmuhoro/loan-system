@@ -457,7 +457,7 @@
             formData.set('basic_salary', formData.get('net_salary'));
             
             // Submit to API
-            const response = await fetch('api/loans.php', {
+            const response = await fetch('../api/loans.php', {
                 method: 'POST',
                 body: formData
             });

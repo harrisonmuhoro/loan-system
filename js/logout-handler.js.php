@@ -34,6 +34,7 @@ header('Expires: Thu, 1 Jan 1970 00:00:00 GMT');
 // Close PHP tag before outputting JavaScript
 ?>
 
+
 /**
 * Universal Logout Handler
 * Provides consistent logout functionality across all user portals
@@ -50,7 +51,7 @@ class LogoutHandler {
 constructor(options = {}) {
 this.options = {
 apiEndpoint: options.apiEndpoint || this.getApiEndpoint(),
-redirectPage: options.redirectPage || 'index.php',
+redirectPage: options.redirectPage || '/loan-system/index.php',
 useAjax: options.useAjax !== false, // Default to true
 confirmMessage: options.confirmMessage || 'Are you sure you want to logout?',
 showConfirm: options.showConfirm !== false, // Default to true
@@ -235,7 +236,7 @@ throw error;
 * Perform direct logout (redirect to logout.php)
 */
 directLogout() {
-window.location.href = this.options.redirectPage + '?logout=direct';
+window.location.href = '/loan-system/index.php?logout=direct';
 }
 
 /**
@@ -281,9 +282,7 @@ this.showToast('Logout successful', 'success');
 
 // Wait a moment before redirect
 setTimeout(() => {
-// Use redirect URL from API response if available
-const redirectUrl = result.data?.redirect_url ||
-(this.options.redirectPage + '?logout=success');
+const redirectUrl = '/loan-system/index.php?logout=success';
 window.location.href = redirectUrl;
 }, 1000);
 

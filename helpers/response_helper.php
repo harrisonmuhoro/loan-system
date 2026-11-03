@@ -57,18 +57,19 @@ class ResponseHelper
      * Internal method to structure and output responses.
      */
     private static function send(bool $success, string $message, mixed $data = null, int $status_code = 200): void
-    {
-        http_response_code($status_code);
+{
+    http_response_code($status_code);
 
-        // Always output valid JSON
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode([
-            'success' => $success,
-            'message' => $message,
-            'data' => $data,
-            'status_code' => $status_code,
-            'timestamp' => date('c') // ISO8601 for better logging
-        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        exit();
-    }
+    // Always output valid JSON
+    header('Content-Type: application/json; charset=utf-8');
+    ob_clean();  // ← Add this line to clear any buffered output
+    echo json_encode([
+        'success' => $success,
+        'message' => $message,
+        'data' => $data,
+        'status_code' => $status_code,
+        'timestamp' => date('c') // ISO8601 for better logging
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    exit();
+}
 }

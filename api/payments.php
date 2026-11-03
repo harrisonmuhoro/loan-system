@@ -378,44 +378,54 @@ function getCollectionsFundingAccount($db) {
                   FROM funding_accounts 
                   WHERE name = :account_name 
                   LIMIT 1";
-        
         $stmt = $db->prepare($query);
-        $accountName = COLLECTIONS_ACCOUNT_NAME;
-        $stmt->bindParam(':account_name', $accountName);
+        $stmt->bindValue(':account_name', COLLECTIONS_ACCOUNT_NAME);
         $stmt->execute();
         
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $account = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        if ($result) {
-            error_log("Collections account found (ID: {$result['funding_account_id']})");
-            return $result;
+        if ($account) {
+            error_log("Found existing Collections account ID: {$account['funding_account_id']}");
+            return $account;
         }
         
-        // Create new account if not found
-        error_log("Creating new Collections account...");
-        
-        $createQuery = "INSERT INTO funding_accounts (name, balance, created_at, updated_at) 
-                        VALUES (:name, 0, NOW(), NOW())";
+        // Create new account if not exists
+        error_log("Creating new Collections Funding Account...");
+        $createQuery = "INSERT INTO funding_accounts (
+                            name, 
+                            description, 
+                            balance,
+                            created_by,
+                            created_at
+                        ) VALUES (
+                            :name, 
+                            :description, 
+                            0.00,
+                            :created_by,
+                            CURRENT_TIMESTAMP
+                        )";
         
         $createStmt = $db->prepare($createQuery);
-        $createStmt->bindParam(':name', $accountName);
+        $createStmt->bindValue(':name', COLLECTIONS_ACCOUNT_NAME);
+        $createStmt->bindValue(':description', 'Central account for all loan collections and repayments');
+        $createStmt->bindValue(':created_by', getUserId() ?? 0);  // System user if no ID
         
-        if ($createStmt->execute()) {
-            $newAccountId = $db->lastInsertId();
-            error_log("Collections account created (ID: {$newAccountId})");
-            
-            return [
-                'funding_account_id' => $newAccountId,
-                'name' => COLLECTIONS_ACCOUNT_NAME,
-                'balance' => 0
-            ];
+        if (!$createStmt->execute()) {
+            throw new Exception('Failed to create Collections account');
         }
         
-        error_log("Failed to create Collections account");
-        return null;
+        $accountId = $db->lastInsertId();
+        
+        error_log("Created new Collections account ID: {$accountId}");
+        
+        return [
+            'funding_account_id' => $accountId,
+            'name' => COLLECTIONS_ACCOUNT_NAME,
+            'balance' => 0.00
+        ];
         
     } catch (Exception $e) {
-        error_log("Error with Collections account: " . $e->getMessage());
+        error_log('Error getting/creating Collections account: ' . $e->getMessage());
         return null;
     }
 }
@@ -425,75 +435,87 @@ function getCollectionsFundingAccount($db) {
  * 
  * @param PDO $db Database connection
  * @param string $applicationId Loan application ID
- * @param float $amount Payment amount
- * @param int $paymentId Payment record ID
- * @param int $userId User making the deposit
+ * @param float $amount Deposit amount
+ * @param int $paymentId Associated payment ID
+ * @param int $userId User performing the action
  * @return array|false Deposit result or false on failure
  */
 function depositToCollectionsAccount($db, $applicationId, $amount, $paymentId, $userId) {
     try {
-        $collectionsAccount = getCollectionsFundingAccount($db);
-        
-        if (!$collectionsAccount) {
-            error_log("ERROR: Could not access Collections account");
-            return false;
+        // Get Collections account
+        $account = getCollectionsFundingAccount($db);
+        if (!$account) {
+            throw new Exception('Collections account not available');
         }
         
-        $accountId = $collectionsAccount['funding_account_id'];
-        $accountName = $collectionsAccount['name'];
+        $accountId = $account['funding_account_id'];
+        $oldBalance = floatval($account['balance']);
+        $newBalance = $oldBalance + floatval($amount);
         
-        error_log("Depositing KES {$amount} to Collections account (ID: {$accountId})");
+        error_log("Depositing KES {$amount} to Collections account {$accountId}");
+        error_log("Old Balance: {$oldBalance} → New: {$newBalance}");
         
         // Update account balance
         $updateQuery = "UPDATE funding_accounts 
-                        SET balance = balance + :amount, 
-                            updated_at = NOW() 
+                        SET balance = :new_balance,
+                            last_updated = CURRENT_TIMESTAMP
                         WHERE id = :account_id";
         
         $updateStmt = $db->prepare($updateQuery);
-        $updateStmt->bindParam(':amount', $amount);
-        $updateStmt->bindParam(':account_id', $accountId);
+        $updateStmt->bindValue(':new_balance', $newBalance);
+        $updateStmt->bindValue(':account_id', $accountId);
         
         if (!$updateStmt->execute()) {
-            error_log("Failed to update Collections account balance");
-            return false;
+            throw new Exception('Failed to update Collections account balance');
         }
         
-        // Log the transaction
-        $transactionQuery = "INSERT INTO funding_transactions 
-                             (funding_account_id, amount, transaction_type, reference, created_by, created_at) 
-                             VALUES (:account_id, :amount, 'deposit', :reference, :user_id, NOW())";
+        // Record transaction
+        $transQuery = "INSERT INTO funding_transactions (
+                            funding_account_id,
+                            transaction_type,
+                            amount,
+                            description,
+                            reference_type,
+                            reference_id,
+                            created_by,
+                            created_at
+                        ) VALUES (
+                            :account_id,
+                            'deposit',
+                            :amount,
+                            :description,
+                            'loan_payment',
+                            :reference_id,
+                            :created_by,
+                            CURRENT_TIMESTAMP
+                        )";
         
-        $transactionStmt = $db->prepare($transactionQuery);
-        $transactionStmt->bindParam(':account_id', $accountId);
-        $transactionStmt->bindParam(':amount', $amount);
+        $transStmt = $db->prepare($transQuery);
+        $transStmt->bindValue(':account_id', $accountId);
+        $transStmt->bindValue(':amount', $amount);
+        $transStmt->bindValue(':description', "Loan repayment deposit from application {$applicationId} (Payment ID: {$paymentId})");
+        $transStmt->bindValue(':reference_id', $paymentId);
+        $transStmt->bindValue(':created_by', $userId);
         
-        $reference = "Loan repayment collection - Application: {$applicationId}, Payment ID: {$paymentId}";
-        $transactionStmt->bindParam(':reference', $reference);
-        $transactionStmt->bindParam(':user_id', $userId);
-        
-        if ($transactionStmt->execute()) {
-            error_log("✓ Deposit successful: KES {$amount} to '{$accountName}'");
-            
-            // Get updated balance
-            $balanceQuery = "SELECT balance FROM funding_accounts WHERE id = :account_id";
-            $balanceStmt = $db->prepare($balanceQuery);
-            $balanceStmt->bindParam(':account_id', $accountId);
-            $balanceStmt->execute();
-            $balanceResult = $balanceStmt->fetch(PDO::FETCH_ASSOC);
-            
-            return [
-                'account_id' => $accountId,
-                'account_name' => $accountName,
-                'amount_deposited' => $amount,
-                'new_balance' => $balanceResult['balance'] ?? 0
-            ];
+        if (!$transStmt->execute()) {
+            throw new Exception('Failed to record Collections deposit transaction');
         }
         
-        return false;
+        $transId = $db->lastInsertId();
+        
+        error_log("Collections deposit transaction recorded (ID: {$transId})");
+        
+        return [
+            'transaction_id' => $transId,
+            'account_id' => $accountId,
+            'account_name' => COLLECTIONS_ACCOUNT_NAME,
+            'old_balance' => $oldBalance,
+            'new_balance' => $newBalance,
+            'amount' => $amount
+        ];
         
     } catch (Exception $e) {
-        error_log("Error depositing to Collections account: " . $e->getMessage());
+        error_log('Collections deposit failed: ' . $e->getMessage());
         return false;
     }
 }
@@ -503,86 +525,59 @@ function depositToCollectionsAccount($db, $applicationId, $amount, $paymentId, $
 // ==========================================
 
 /**
- * Handle POST request to record a new payment
+ * Handle POST request to record new payment
+ * FIXED: Now updates loan status to 'active' on first payment
  * 
  * @param PDO $db Database connection
  */
 function handlePostRequest($db) {
-    // Step 1: Verify authentication
+    // Verify authentication and role
     verifyAuthentication();
-    
-    // Step 2: Verify cashier role
     verifyCashierRole();
     
-    // Step 3: Get and parse input
+    // Get JSON input
     $rawInput = file_get_contents('php://input');
+    error_log("Raw POST data: {$rawInput}");
+    
     $input = json_decode($rawInput, true);
     
-    error_log("=== PAYMENT RECORDING REQUEST ===");
-    error_log("Application ID: " . ($input['application_id'] ?? 'NOT SET'));
-    error_log("Amount: " . ($input['amount'] ?? 'NOT SET'));
-    error_log("Recorded by: " . ($_SESSION['full_name'] ?? 'UNKNOWN'));
-    
-    // Validate JSON parsing
     if (json_last_error() !== JSON_ERROR_NONE) {
-        error_log("JSON parsing failed: " . json_last_error_msg());
-        sendResponse(false, 'Invalid JSON data: ' . json_last_error_msg(), null, 400);
+        sendResponse(false, 'Invalid JSON data', null, 400);
     }
     
-    // Step 4: Verify CSRF token
+    // Verify CSRF
     verifyCsrfToken($input);
     
-    // Step 5: Validate required fields
-    $requiredFields = [
-        'application_id',
-        'payment_date',
+    // Required fields
+    $required = [
+        'application_id', 
         'amount',
         'principal_amount',
         'interest_amount',
-        'payment_source'
+        'payment_source',
+        'payment_date'
     ];
     
-    validateRequiredFields($input, $requiredFields);
+    validateRequiredFields($input, $required);
     
-    // Step 6: Validate amounts
+    // Validate and sanitize inputs
     validatePaymentAmount($input['amount']);
-    validatePaymentAmount($input['principal_amount']);
-    validatePaymentAmount($input['interest_amount']);
-    
-    // Validate payment date
     validateDate($input['payment_date']);
     
-    // Validate payment breakdown
-    $totalAmount = floatval($input['principal_amount']) + floatval($input['interest_amount']);
-    if (abs($totalAmount - floatval($input['amount'])) > 0.01) {
-        sendResponse(
-            false, 
-            'Payment breakdown mismatch: Principal + Interest must equal Total Amount',
-            [
-                'principal' => $input['principal_amount'],
-                'interest' => $input['interest_amount'],
-                'total' => $input['amount'],
-                'calculated_total' => $totalAmount
-            ],
-            400
-        );
-    }
-    
-    // Step 7: Map and validate payment source
     $paymentSource = mapPaymentSource($input['payment_source']);
+    $transactionRef = trim($input['transaction_reference'] ?? '');
+    $notes = trim($input['notes'] ?? '');
     
-    // Step 8: Prepare data
-    $recordedBy = $_SESSION['full_name'] ?? $_SESSION['username'] ?? 'Unknown';
     $userId = getUserId();
-    $transactionRef = $input['transaction_reference'] ?? null;
-    $notes = $input['notes'] ?? null;
-    $balanceAfter = $input['balance_after'] ?? 0;
+    $recordedBy = $userId ?? $_SESSION['pf_number'] ?? 0;
     
-    // Step 9: Execute database transaction
+    // Calculate balance after (for reference only)
+    $balanceAfter = floatval($input['principal_amount']) + floatval($input['interest_amount']) - floatval($input['amount']);
+    
     try {
+        // Start transaction
         $db->beginTransaction();
-        
-        error_log("Starting payment transaction for loan {$input['application_id']}");
+        error_log("Payment transaction started");
         
         // Insert payment record
         $query = "INSERT INTO payments (
@@ -625,6 +620,23 @@ function handlePostRequest($db) {
         if (!$stmt->execute()) {
             throw new Exception('Failed to insert payment record');
         }
+        // After successful payment insertion, check if this is the first payment
+        $countQuery = "SELECT COUNT(*) as payment_count FROM payments WHERE application_id = :app_id";
+        $countStmt = $db->prepare($countQuery);
+        $countStmt->bindParam(':app_id', $input['application_id']);
+        $countStmt->execute();
+        $row = $countStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($row['payment_count'] == 1) {
+            // Update status to 'active' if currently 'dispatched'
+            $updateQuery = "UPDATE loan_applications SET status = 'active' 
+                            WHERE application_id = :app_id AND status = 'dispatched'";
+            $updateStmt = $db->prepare($updateQuery);
+            $updateStmt->bindParam(':app_id', $input['application_id']);
+            $updateStmt->execute();
+        }
+
+
         
         $paymentId = $db->lastInsertId();
         

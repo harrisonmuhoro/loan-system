@@ -483,6 +483,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_ajax()) {
         width: 100%;
     }
     </style>
+    <script src="js/lucide.min.js"></script>
 </head>
 
 <body>
@@ -493,7 +494,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_ajax()) {
                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                 <div
                     style="display:none; width:100%; height:100%; justify-content:center; align-items:center; font-size:40px; color:#2e7d32;">
-                    🏛️</div>
+                    <i data-lucide="landmark" class="icon-sm"></i></div>
             </div>
             <h1>Nyeri County Loan Management System</h1>
             <p>Loanee Registration</p>
@@ -648,6 +649,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_ajax()) {
     // Auto-focus
     document.querySelector('[name="id_number"]').focus();
     </script>
+        <script>
+    const renderIcons = () => {
+        lucide.createIcons();
+        document.querySelectorAll('svg[data-lucide]').forEach(el => el.removeAttribute('data-lucide'));
+    };
+    renderIcons();
+    const observer = new MutationObserver((mutations) => {
+        let hasNewNodes = false;
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach(node => {
+                if (node.nodeType === 1) hasNewNodes = true;
+            });
+        });
+        if (hasNewNodes) {
+            observer.disconnect();
+            renderIcons();
+            observer.observe(document.body, { childList: true, subtree: true });
+        }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+</script>
 </body>
 
 </html>

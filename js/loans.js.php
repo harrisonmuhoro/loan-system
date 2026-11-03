@@ -13,6 +13,7 @@ header('Content-Type: application/javascript');
 
 // Close PHP tag before outputting JavaScript
 ?>
+
 class LoanAPI {
 constructor(apiKey) {
 this.apiKey = apiKey;

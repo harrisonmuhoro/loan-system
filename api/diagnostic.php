@@ -298,12 +298,12 @@ header('Content-Type: text/html; charset=utf-8');
                 '../config/database.php' => 'Database configuration',
                 '../config/config.php' => 'System configuration',
                 '../helpers/response_helper.php' => 'API response handler',
-                'funds.php' => 'Funding accounts API',
-                'loans.php' => 'Loan applications API',
-                'staff.php' => 'Staff management API',
-                'settings.php' => 'System settings API',
-                'activity.php' => 'Activity log API',
-                'logs.php' => 'Admin logs API'
+                '/funds.php' => 'Funding accounts API',
+                '/loans.php' => 'Loan applications API',
+                '/staff.php' => 'Staff management API',
+                '/settings.php' => 'System settings API',
+                '/activity.php' => 'Activity log API',
+                '/logs.php' => 'Admin logs API'
             ];
             
             foreach ($requiredFiles as $file => $desc) {
@@ -422,13 +422,13 @@ header('Content-Type: text/html; charset=utf-8');
                 // Check activity_log structure
                 $stmt = $db->query("SHOW COLUMNS FROM activity_log");
                 $columns = $stmt->fetchAll(PDO::FETCH_COLUMN);
-                $hasCorrectStructure = in_array('id', $columns) && in_array('type', $columns) && in_array('loan_id', $columns);
+                $hasCorrectStructure = in_array('id', $columns) && in_array('type', $columns) && in_array('id', $columns);
                 
                 if (!$hasCorrectStructure) {
                     warning(
                         'activity_log structure',
                         'Table structure may need updating',
-                        'Expected columns: id, type, loan_id, admin_id, details, timestamp. Found: ' . implode(', ', $columns)
+                        'Expected columns: id, type, id, admin_id, details, timestamp. Found: ' . implode(', ', $columns)
                     );
                 } else {
                     test(
@@ -531,7 +531,7 @@ header('Content-Type: text/html; charset=utf-8');
             <?php endif; ?>
 
             <div style="margin-top: 30px; text-align: center;">
-                <a href="../admin.php" class="btn">← Back to Admin Portal</a>
+                <a href="admin.php" class="btn">← Back to Admin Portal</a>
                 <a href="<?= htmlspecialchars($_SERVER['PHP_SELF']) ?>" class="btn" style="background: #2196F3;">🔄
                     Re-run Diagnostic</a>
             </div>

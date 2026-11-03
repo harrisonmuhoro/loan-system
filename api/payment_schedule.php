@@ -43,6 +43,66 @@ switch ($method) {
 
         $schedule = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Backfill schedules for loans that were dispatched before schedule
+        // generation was added to the Accountant dispatch flow.
+        if (empty($schedule)) {
+            $loan_query = "SELECT loan_amount, payment_duration, dispatch_date, status
+                           FROM loan_applications WHERE id = :loan_id LIMIT 1";
+            $loan_stmt = $db->prepare($loan_query);
+            $loan_stmt->bindParam(':loan_id', $loan_application_id, PDO::PARAM_INT);
+            $loan_stmt->execute();
+            $loan = $loan_stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($loan && $loan['status'] === 'dispatched') {
+                $rate_stmt = $db->prepare(
+                    "SELECT value FROM system_settings
+                     WHERE setting_key = 'amortization_rate' LIMIT 1"
+                );
+                $rate_stmt->execute();
+                $annual_rate = (float) ($rate_stmt->fetchColumn() ?: 3.0);
+
+                $principal = (float) $loan['loan_amount'];
+                $total_payments = max(1, (int) $loan['payment_duration']) * 12;
+                $monthly_rate = $annual_rate / 100 / 12;
+                $monthly_payment = $monthly_rate > 0
+                    ? $principal * ($monthly_rate * pow(1 + $monthly_rate, $total_payments)) /
+                      (pow(1 + $monthly_rate, $total_payments) - 1)
+                    : $principal / $total_payments;
+
+                $start_date = new DateTime($loan['dispatch_date'] ?: 'now');
+                $start_date->add(new DateInterval('P1M'));
+                $balance = $principal;
+
+                $insert_stmt = $db->prepare(
+                    "INSERT INTO payment_schedules
+                        (loan_application_id, payment_number, due_date, expected_amount,
+                         expected_principal, expected_interest, expected_balance, status)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')"
+                );
+
+                for ($i = 1; $i <= $total_payments; $i++) {
+                    $due_date = clone $start_date;
+                    $due_date->add(new DateInterval('P' . ($i - 1) . 'M'));
+                    $interest_payment = $balance * $monthly_rate;
+                    $principal_payment = min($balance, $monthly_payment - $interest_payment);
+                    $balance = max(0, $balance - $principal_payment);
+
+                    $insert_stmt->execute([
+                        $loan_application_id,
+                        $i,
+                        $due_date->format('Y-m-d'),
+                        round($monthly_payment, 2),
+                        round($principal_payment, 2),
+                        round($interest_payment, 2),
+                        round($balance, 2)
+                    ]);
+                }
+
+                $stmt->execute();
+                $schedule = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
+        }
+
         ResponseHelper::success($schedule);
         break;
 

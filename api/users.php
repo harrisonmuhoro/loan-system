@@ -1,4 +1,7 @@
 <?php
+ob_start();
+header('Content-Type: application/json');
+
 require_once '../config/database.php';
 require_once '../config/config.php';
 require_once '../helpers/response_helper.php';
@@ -10,6 +13,33 @@ $database = new Database();
 $db = $database->getConnection();
 $user = new User($db);
 $method = $_SERVER['REQUEST_METHOD'];
+
+/**
+ * Enhanced password hashing with explicit cost factor
+ * PHP's password_hash already includes automatic salt generation
+ * Cost factor of 12 provides strong security (higher = more secure but slower)
+ */
+function hashPasswordSecure($password) {
+    $options = [
+        'cost' => 12, // Computational cost (4-31, default is 10)
+    ];
+    return password_hash($password, PASSWORD_BCRYPT, $options);
+}
+
+/**
+ * Verify password against hash
+ */
+function verifyPasswordSecure($password, $hash) {
+    return password_verify($password, $hash);
+}
+
+/**
+ * Check if password needs rehashing (security upgrade)
+ */
+function needsRehash($hash) {
+    $options = ['cost' => 12];
+    return password_needs_rehash($hash, PASSWORD_BCRYPT, $options);
+}
 
 switch ($method) {
     case 'GET':
@@ -23,7 +53,43 @@ switch ($method) {
             ResponseHelper::forbidden('Only admins can view all users');
         }
         
-        // Get parameters
+        // Handle single user fetch for editing
+        if (isset($_GET['user_id'])) {
+            $user_id = $_GET['user_id'];
+            
+            if ($user_id <= 0 || !is_numeric($user_id)) {
+                ResponseHelper::error('Invalid user ID');
+            }
+            
+            $query = "SELECT user_id, full_name, email, id_number, pf_number, role, is_active, can_apply_for_loan, created_at, updated_at 
+                      FROM users WHERE user_id = :user_id LIMIT 1";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+            $stmt->execute();
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($user) {
+                // Format response
+                $formattedUser = [
+                    'user_id' => (int)$user['user_id'],
+                    'full_name' => $user['full_name'],
+                    'email' => $user['email'],
+                    'id_number' => $user['id_number'],
+                    'pf_number' => $user['pf_number'],
+                    'role' => $user['role'],
+                    'is_active' => (int)$user['is_active'],
+                    'can_apply_for_loan' => (bool)$user['can_apply_for_loan'],
+                    'created_at' => $user['created_at'],
+                    'updated_at' => $user['updated_at']
+                ];
+                ResponseHelper::success($formattedUser);
+            } else {
+                ResponseHelper::notFound('User not found');
+            }
+            exit;
+        }
+        
+        // Get parameters for listing all users
         $role = isset($_GET['role']) ? $_GET['role'] : null;
         $status = isset($_GET['status']) ? $_GET['status'] : null;
         $search = isset($_GET['search']) ? trim($_GET['search']) : null;
@@ -80,7 +146,7 @@ switch ($method) {
                 'id_number' => $userRow['id_number'],
                 'pf_number' => $userRow['pf_number'],
                 'role' => $userRow['role'],
-                'is_active' => (bool)$userRow['is_active'],
+                'is_active' => (int)$userRow['is_active'],
                 'can_apply_for_loan' => (bool)$userRow['can_apply_for_loan'],
                 'created_at' => $userRow['created_at'],
                 'updated_at' => $userRow['updated_at']
@@ -89,6 +155,7 @@ switch ($method) {
         
         ResponseHelper::success($formattedUsers);
         break;
+
         
     case 'POST':
         // Check if user is logged in
@@ -110,41 +177,41 @@ switch ($method) {
         }
         
         // Handle switching to loanee portal
-if (isset($data->action) && $data->action === 'switch_to_loanee_portal') {
-    $allowedRoles = ['admin', 'cashier', 'accountant'];
-    if (!in_array($_SESSION['user_role'], $allowedRoles)) {
-        ResponseHelper::forbidden('You do not have permission to access the loanee portal');
-    }
-    
-    // Store original portal info
-    if (!isset($_SESSION['original_portal'])) {
-        $_SESSION['original_portal'] = strtolower($_SESSION['user_role']);
-        $_SESSION['original_role'] = $_SESSION['user_role'];
-    }
-    
-    // Set flags for loanee view
-    $_SESSION['viewing_as_loanee'] = true;
-    $_SESSION['from_staff_portal'] = true;
-    
-    // Log activity
-    try {
-        $stmt = $db->prepare("INSERT INTO activity_log (admin_id, action, details, timestamp) 
-                             VALUES (:admin_id, :action, :details, NOW())");
-        $stmt->bindParam(':admin_id', $_SESSION['user_id']);
-        $action = 'switch_to_loanee_portal';
-        $stmt->bindParam(':action', $action);
-        $details = "Staff {$_SESSION['full_name']} switched to loanee portal";
-        $stmt->bindParam(':details', $details);
-        $stmt->execute();
-    } catch (PDOException $e) {
-        error_log("Failed to log activity: " . $e->getMessage());
-    }
-    
-    ResponseHelper::success([
-        'message' => 'Switching to loanee portal',
-        'redirect_url' => 'loanee.php?from=' . strtolower($_SESSION['user_role']) . '&action=switch_portal'
-    ]);
-}
+        if (isset($data->action) && $data->action === 'switch_to_loanee_portal') {
+            $allowedRoles = ['admin', 'cashier', 'accountant'];
+            if (!in_array($_SESSION['user_role'], $allowedRoles)) {
+                ResponseHelper::forbidden('You do not have permission to access the loanee portal');
+            }
+            
+            // Store original portal info
+            if (!isset($_SESSION['original_portal'])) {
+                $_SESSION['original_portal'] = strtolower($_SESSION['user_role']);
+                $_SESSION['original_role'] = $_SESSION['user_role'];
+            }
+            
+            // Set flags for loanee view
+            $_SESSION['viewing_as_loanee'] = true;
+            $_SESSION['from_staff_portal'] = true;
+            
+            // Log activity
+            try {
+                $stmt = $db->prepare("INSERT INTO activity_log (admin_id, action, details, timestamp) 
+                                     VALUES (:admin_id, :action, :details, NOW())");
+                $stmt->bindParam(':admin_id', $_SESSION['user_id']);
+                $action = 'switch_to_loanee_portal';
+                $stmt->bindParam(':action', $action);
+                $details = "Staff {$_SESSION['full_name']} switched to loanee portal";
+                $stmt->bindParam(':details', $details);
+                $stmt->execute();
+            } catch (PDOException $e) {
+                error_log("Failed to log activity: " . $e->getMessage());
+            }
+            
+            ResponseHelper::success([
+                'message' => 'Switching to loanee portal',
+                'redirect_url' => 'loanee.php?from=' . strtolower($_SESSION['user_role']) . '&action=switch_portal'
+            ]);
+        }
         // Handle returning to staff portal
         else if (isset($data->action) && $data->action === 'return_to_staff_portal') {
             if (!isset($_SESSION['from_staff_portal'])) {
@@ -212,9 +279,20 @@ if (isset($data->action) && $data->action === 'switch_to_loanee_portal') {
                 ResponseHelper::error('PF number must be 9-11 digits');
             }
             
-            // Validate password strength
+            // Enhanced password validation
             if (strlen($data->password) < 8) {
                 ResponseHelper::error('Password must be at least 8 characters long');
+            }
+            
+            // Additional password strength checks
+            if (!preg_match('/[A-Z]/', $data->password)) {
+                ResponseHelper::error('Password must contain at least one uppercase letter');
+            }
+            if (!preg_match('/[a-z]/', $data->password)) {
+                ResponseHelper::error('Password must contain at least one lowercase letter');
+            }
+            if (!preg_match('/[0-9]/', $data->password)) {
+                ResponseHelper::error('Password must contain at least one number');
             }
             
             // Check for duplicates
@@ -230,11 +308,11 @@ if (isset($data->action) && $data->action === 'switch_to_loanee_portal') {
                 ResponseHelper::error('ID number already exists');
             }
             
-            // Create user
+            // Create user with enhanced password hashing
             $user->full_name = trim($data->name);
             $user->pf_number = trim($data->pfNumber);
             $user->id_number = trim($data->idNumber);
-            $user->password = $data->password;
+            $user->password = hashPasswordSecure($data->password); // Using enhanced hashing
             $user->email = trim($data->email);
             $user->role = $data->role;
             
@@ -351,50 +429,61 @@ if (isset($data->action) && $data->action === 'switch_to_loanee_portal') {
             ResponseHelper::forbidden('You cannot deactivate your own account');
         }
         
-        // NEW: Handle is_active toggle
-    if (isset($data->is_active)) {
-        $updateFields[] = "is_active = :is_active";
-        $params[':is_active'] = $data->is_active ? 1 : 0;
-    }
+        // Handle is_active toggle
+        if (isset($data->is_active)) {
+            $updateFields[] = "is_active = :is_active";
+            $params[':is_active'] = $data->is_active ? 1 : 0;
+        }
         
-    // Handle password update
-    if (isset($data->password) && !empty($data->password)) {
-        if (strlen($data->password) < 8) {
-            ResponseHelper::error('Password must be at least 8 characters long');
-        }
-        $updateFields[] = "password = :password";
-        $params[':password'] = password_hash($data->password, PASSWORD_DEFAULT);
-    }
-
-    if (empty($updateFields)) {
-        ResponseHelper::error('No fields to update');
-    }
-
-    $updateFields[] = "updated_at = NOW()";
-
-    $updateQuery = "UPDATE users SET " . implode(', ', $updateFields) . " WHERE user_id = :user_id";
-    $stmt = $db->prepare($updateQuery);
-
-    if ($stmt->execute($params)) {
-        // Log activity
-        try {
-            $logStmt = $db->prepare("INSERT INTO activity_log (admin_id, action, details, timestamp) 
-                                    VALUES (:admin_id, :action, :details, NOW())");
-            $logStmt->bindParam(':admin_id', $_SESSION['user_id']);
-            $action = 'update_user';
-            $logStmt->bindParam(':action', $action);
-            $details = "Admin {$_SESSION['full_name']} updated user ID: {$user_id}";
-            $logStmt->bindParam(':details', $details);
-            $logStmt->execute();
-        } catch (PDOException $e) {
-            error_log("Failed to log activity: " . $e->getMessage());
+        // Handle password update with enhanced security
+        if (isset($data->password) && !empty($data->password)) {
+            // Enhanced password validation
+            if (strlen($data->password) < 8) {
+                ResponseHelper::error('Password must be at least 8 characters long');
+            }
+            if (!preg_match('/[A-Z]/', $data->password)) {
+                ResponseHelper::error('Password must contain at least one uppercase letter');
+            }
+            if (!preg_match('/[a-z]/', $data->password)) {
+                ResponseHelper::error('Password must contain at least one lowercase letter');
+            }
+            if (!preg_match('/[0-9]/', $data->password)) {
+                ResponseHelper::error('Password must contain at least one number');
+            }
+            
+            $updateFields[] = "password = :password";
+            $params[':password'] = hashPasswordSecure($data->password); // Using enhanced hashing
         }
 
-        ResponseHelper::success(null, 'User updated successfully');
-    } else {
-        ResponseHelper::error('Failed to update user');
-    }
-    break;
+        if (empty($updateFields)) {
+            ResponseHelper::error('No fields to update');
+        }
+
+        $updateFields[] = "updated_at = NOW()";
+
+        $updateQuery = "UPDATE users SET " . implode(', ', $updateFields) . " WHERE user_id = :user_id";
+        $stmt = $db->prepare($updateQuery);
+
+        if ($stmt->execute($params)) {
+            // Log activity
+            try {
+                $logStmt = $db->prepare("INSERT INTO activity_log (admin_id, action, details, timestamp) 
+                                        VALUES (:admin_id, :action, :details, NOW())");
+                $logStmt->bindParam(':admin_id', $_SESSION['user_id']);
+                $action = 'update_user';
+                $logStmt->bindParam(':action', $action);
+                $details = "Admin {$_SESSION['full_name']} updated user ID: {$user_id}";
+                $logStmt->bindParam(':details', $details);
+                $logStmt->execute();
+            } catch (PDOException $e) {
+                error_log("Failed to log activity: " . $e->getMessage());
+            }
+
+            ResponseHelper::success(null, 'User updated successfully');
+        } else {
+            ResponseHelper::error('Failed to update user');
+        }
+        break;
         
     case 'DELETE':
         // Check if user is logged in

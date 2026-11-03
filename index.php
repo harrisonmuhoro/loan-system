@@ -1,6 +1,39 @@
 <?php
+
+// ===== SESSION CONFIGURATION =====
+ini_set('session.gc_maxlifetime', 36000);
+ini_set('session.cookie_lifetime', 36000);
+ini_set('session.gc_probability', 1);
+ini_set('session.gc_divisor', 100);
+ini_set('session.use_strict_mode', 1);
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_samesite', 'Lax');
+
+// Use consistent domain handling
+ $sessionDomain = '';
+if (!empty($_SERVER['HTTP_HOST'])) {
+    // Always use the current host
+    $sessionDomain = $_SERVER['HTTP_HOST'];
+}
+
+session_set_cookie_params([
+    'lifetime' => 36000,
+    'path' => '/',
+    'domain' => $sessionDomain,
+    'secure' => false, // Set to true only if ALL pages use HTTPS
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
+
 // Start session
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Add after session_start()
+error_log("Session ID: " . session_id());
+error_log("Session data: " . print_r($_SESSION, true));
+error_log("Cookie domain: " . $sessionDomain);
 
 // Check for registration success message
 $success_message = '';
@@ -26,17 +59,20 @@ try {
 
 // Handle login form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $pf_number = trim($_POST['pf_number']);
-    $password = $_POST['password'];
+    $pf_number = trim($_POST['pf_number'] ?? '');
+    $password  = $_POST['password'] ?? '';
 
     $errors = [];
 
     if (empty($pf_number)) {
-        $errors[] = "PF Number is required";
+        $errors[] = "PF Number is required.";
+    } elseif (!preg_match('/^[0-9]{5,10}$/', $pf_number)) {
+        // Strict: digits only, 5–10 characters (matches registered PF format)
+        $errors[] = "Invalid PF Number format. Must be 5–10 digits with no letters or special characters.";
     }
 
     if (empty($password)) {
-        $errors[] = "Password is required";
+        $errors[] = "Password is required.";
     }
 
     if (empty($errors)) {
@@ -51,12 +87,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if ($stmt->rowCount() === 1) {
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
+                
                 // Verify password using bcrypt
                 if (password_verify($password, $user['password'])) {
-                    // Regenerate session ID to prevent session fixation
+                    // Regenerate session ID ONCE after successful authentication
                     session_regenerate_id(true);
-
+                    
                     // Set session variables
                     $_SESSION['user_id'] = $user['user_id'];
                     $_SESSION['pf_number'] = $user['pf_number'];
@@ -68,25 +104,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $_SESSION['last_activity'] = time();
                     $_SESSION['last_regeneration'] = time();
                     $_SESSION['authenticated'] = true;
-
-                    // Generate CSRF token for the session
-                    if (!isset($_SESSION['csrf_token'])) {
-                        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-                    }
-
+                    
+                    // Generate CSRF token
+                    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+                    
                     // Redirect based on role
                     $role_pages = [
-                        'admin' => 'admin.php',
-                        'accountant' => 'accountant.php',
-                        'cashier' => 'cashier.php',
-                        'loanee' => 'loanee.php'
+                        'admin' => 'pages/admin.php',
+                        'accountant' => 'pages/accountant.php',
+                        'cashier' => 'pages/cashier.php',
+                        'loanee' => 'pages/loanee.php'
                     ];
 
                     if (isset($role_pages[$user['role']])) {
-                        // Use absolute URL for redirect to avoid any path issues
-                        $redirect_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]" .
-                            dirname($_SERVER['PHP_SELF']) . "/" . $role_pages[$user['role']];
-                        header("Location: " . $redirect_url);
+                        // Use simple redirect
+                        header("Location: " . $role_pages[$user['role']]);
                         exit();
                     } else {
                         $error_msg = "Invalid role assigned. Please contact administrator.";
@@ -105,6 +137,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error_msg = implode("<br>", $errors);
     }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -374,6 +407,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         font-style: italic;
     }
     </style>
+    <script src="js/lucide.min.js"></script>
 </head>
 
 <body>
@@ -384,7 +418,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                 <div
                     style="display:none; width:100%; height:100%; justify-content:center; align-items:center; font-size:40px; color:#2e7d32;">
-                    🏛️</div>
+                    <i data-lucide="landmark" class="icon-sm"></i></div>
             </div>
             <h1>Nyeri County Loan Management System</h1>
             <p>Welcome Back</p>
@@ -409,10 +443,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <form id="loginForm" method="post" action="index.php">
             <div class="form-group">
                 <label for="pf_number">PF Number</label>
-                <input type="text" id="pf_number" name="pf_number" placeholder="Enter your PF Number" required
+                <input type="text"
+                    id="pf_number"
+                    name="pf_number"
+                    placeholder="e.g. 123456"
+                    required
+                    inputmode="numeric"
+                    pattern="[0-9]{5,10}"
+                    minlength="5"
+                    maxlength="10"
+                    title="PF Number must be 5–10 digits (numbers only)"
                     value="<?php echo isset($_POST['pf_number']) ? htmlspecialchars($_POST['pf_number']) : ''; ?>"
                     autocomplete="off">
-                <div class="info-text">Your Personal File Number</div>
+                <div class="info-text" id="pf-hint">Numbers only &bull; 5–10 digits</div>
             </div>
 
             <div class="form-group">
@@ -438,8 +481,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="spinner"></div> Authenticating...
         </div>
 
-        <div class="copyright">
-            © 2025 Nyeri County Government. All Rights Reserved.
+       <div class="copyright">
+    &copy; <script>document.write(new Date().getFullYear());</script> Nyeri County Government. All rights reserved.
         </div>
     </div>
 
@@ -483,11 +526,55 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         });
     }, 5000);
 
-    // Format PF number input (optional - converts to uppercase)
-    document.getElementById('pf_number').addEventListener('input', function(e) {
-        this.value = this.value.toUpperCase();
+    // PF Number: strip non-numeric characters as the user types
+    const pfInput = document.getElementById('pf_number');
+    const pfHint  = document.getElementById('pf-hint');
+
+    pfInput.addEventListener('input', function() {
+        // Remove any non-digit character instantly
+        const clean = this.value.replace(/[^0-9]/g, '');
+        if (this.value !== clean) this.value = clean;
+
+        // Live hint feedback
+        const len = clean.length;
+        if (len === 0) {
+            pfHint.textContent = 'Numbers only \u2022 5\u201310 digits';
+            pfHint.style.color = '';
+        } else if (len < 5) {
+            pfHint.textContent = `${len}/10 digits \u2014 minimum 5 required`;
+            pfHint.style.color = '#BB5E22';
+        } else {
+            pfHint.textContent = `${len}/10 digits \u2714`;
+            pfHint.style.color = '#6CAC61';
+        }
+    });
+
+    // Also block non-numeric keys (paste handled by input event above)
+    pfInput.addEventListener('keypress', function(e) {
+        if (!/[0-9]/.test(e.key)) e.preventDefault();
     });
     </script>
+        <script>
+    const renderIcons = () => {
+        lucide.createIcons();
+        document.querySelectorAll('svg[data-lucide]').forEach(el => el.removeAttribute('data-lucide'));
+    };
+    renderIcons();
+    const observer = new MutationObserver((mutations) => {
+        let hasNewNodes = false;
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach(node => {
+                if (node.nodeType === 1) hasNewNodes = true;
+            });
+        });
+        if (hasNewNodes) {
+            observer.disconnect();
+            renderIcons();
+            observer.observe(document.body, { childList: true, subtree: true });
+        }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+</script>
 </body>
 
 </html>

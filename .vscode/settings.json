@@ -30,6 +30,20 @@
             "database": "loan_management",
             "username": "Harry",
             "connectionTimeout": 30
+        },
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "Local",
+            "database": "loan_management",
+            "username": "root"
         }
     ],
     "editor.formatOnSave": true,

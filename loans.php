@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // api/loans.php - FIXED VERSION
 
 session_start();
@@ -47,7 +47,7 @@ function logError(string $message): void
 /* -----------------------------------------------------------------
  *  DATABASE CONNECTION
  * ----------------------------------------------------------------- */
-require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/config/database.php';
 
 try {
     $database = new Database();
@@ -62,7 +62,7 @@ try {
  * ----------------------------------------------------------------- */
 if (empty($_SESSION['user_id'])) {
     logError('No user_id in session - Request from IP: ' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
-    sendJson(401, ['success' => false, 'message' => 'Unauthorized – please login.']);
+    sendJson(401, ['success' => false, 'message' => 'Unauthorized â€“ please login.']);
 }
 
  $currentUserId = (int)($_SESSION['user_id'] ?? 0);
