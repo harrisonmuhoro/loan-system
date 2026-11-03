@@ -2,32 +2,28 @@
 .env
 .env.*
 !.env.example
-secure/*
-!secure/.gitkeep
+/config/local.php
+/config/config.local.php
 
-# Composer dependencies
+# Composer dependencies and generated autoload files
 /vendor/
 
-# Runtime logs and PHP error output
+# Runtime logs
 *.log
-php_errors.log
-php_error.log
-error.log
 /logs/
 /api/logs/
 /pages/logs/
 
-# Uploaded/imported user files and generated exports
+# Private uploads, imported documents, and generated exports
+/secure/*
+!/secure/.gitkeep
 /uploads/
 /storage/
 /tmp/
 /temp/
-*.csv
-*.xls
-*.xlsx
-*.pdf
+/exports/
 
-# Backups and generated database dumps
+# Local database backups and generated dumps (keep schema/migration SQL tracked)
 /backups/
 backup_*.json
 backup_*.sql
@@ -35,17 +31,17 @@ dump_*.sql
 *_dump.sql
 *.bak
 
-# Local runtime/tooling files
+# Test and tooling caches
+/.phpunit.result.cache
+/.phpunit.cache/
 /php.exe
 /.php-version
-.phpunit.result.cache
-.phpunit.cache/
 
 # IDE and operating-system files
-.idea/
-.vscode/*
-!.vscode/extensions.json
-!.vscode/tasks.json
+/.idea/
+/.vscode/*
+!/.vscode/extensions.json
+!/.vscode/tasks.json
 *.code-workspace
 .DS_Store
 Thumbs.db

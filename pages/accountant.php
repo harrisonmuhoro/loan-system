@@ -1174,6 +1174,9 @@ try {
             <li data-filter="converted-debtors" tabindex="0" role="button">
                 <i data-lucide="check-circle" class="icon-sm"></i> <span class="label">Converted Debtors</span>
             </li>
+            <li tabindex="0" role="button" onclick="window.location.href='../legacy-debt.php'">
+                🧾 <span class="label">Legacy Debt</span>
+            </li>
 
             <button class="apply-loan-btn" onclick="applyForLoan()">
                 <span class="button-icon"><i data-lucide="file-edit" class="icon-sm"></i></span>

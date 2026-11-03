@@ -181,29 +181,33 @@ try {
                   )";
         
         $stmt = $db->prepare($query);
-        $stmt->bindParam(':application_id', $application_id);
-        $stmt->bindParam(':full_name', $input['full_name']);
-        $stmt->bindParam(':id_number', $input['id_number']);
-        $stmt->bindParam(':pf_number', $input['pf_number']);
-        $stmt->bindParam(':email', $input['email']);
-        $stmt->bindParam(':loan_type', $input['loan_type']);
-        $stmt->bindParam(':loan_amount', $input['loan_amount']);
-        $stmt->bindParam(':payment_duration', $input['payment_duration']);
-        $stmt->bindParam(':payment_frequency', $input['payment_frequency'] ?? 'monthly');
-        $stmt->bindParam(':basic_salary', $input['basic_salary'] ?? null);
-        $stmt->bindParam(':employment_type', $input['employment_type'] ?? null);
-        $stmt->bindParam(':contract_period', $input['contract_period'] ?? null);
-        $stmt->bindParam(':contract_start_date', $input['contract_start_date'] ?? null);
-        $stmt->bindParam(':contract_end_date', $input['contract_end_date'] ?? null);
-        $stmt->bindParam(':property_location', $input['property_location'] ?? null);
-        $stmt->bindParam(':property_value', $input['property_value'] ?? null);
-        $stmt->bindParam(':car_type', $input['car_type'] ?? null);
-        $stmt->bindParam(':car_value', $input['car_value'] ?? null);
-        $stmt->bindParam(':bank_name', $input['bank_name'] ?? null);
-        $stmt->bindParam(':bank_branch', $input['bank_branch'] ?? null);
-        $stmt->bindParam(':bank_account_number', $input['bank_account_number'] ?? null);
+        // bindParam() requires variables by reference; using inline array
+        // expressions here caused normal-loan creation to fatal under PHP 8.
+        $stmt->execute([
+            ':application_id' => $application_id,
+            ':full_name' => $input['full_name'],
+            ':id_number' => $input['id_number'],
+            ':pf_number' => $input['pf_number'],
+            ':email' => $input['email'],
+            ':loan_type' => $input['loan_type'],
+            ':loan_amount' => $input['loan_amount'],
+            ':payment_duration' => $input['payment_duration'],
+            ':payment_frequency' => $input['payment_frequency'] ?? 'monthly',
+            ':basic_salary' => $input['basic_salary'] ?? null,
+            ':employment_type' => $input['employment_type'] ?? null,
+            ':contract_period' => $input['contract_period'] ?? null,
+            ':contract_start_date' => $input['contract_start_date'] ?? null,
+            ':contract_end_date' => $input['contract_end_date'] ?? null,
+            ':property_location' => $input['property_location'] ?? null,
+            ':property_value' => $input['property_value'] ?? null,
+            ':car_type' => $input['car_type'] ?? null,
+            ':car_value' => $input['car_value'] ?? null,
+            ':bank_name' => $input['bank_name'] ?? null,
+            ':bank_branch' => $input['bank_branch'] ?? null,
+            ':bank_account_number' => $input['bank_account_number'] ?? null,
+        ]);
         
-        if ($stmt->execute()) {
+        if ($stmt->rowCount() > 0) {
             sendResponse(true, 'Loan application created successfully', [
                 'application_id' => $application_id,
                 'id' => $db->lastInsertId()

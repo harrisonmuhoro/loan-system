@@ -1306,6 +1306,11 @@ try {
                 <span class="button-text">Legacy Debtors</span>
                 <span class="tooltiptext">View Imported Debtors</span>
             </button>
+            <button class="tooltip" onclick="window.location.href='../legacy-debt.php'">
+                <span class="button-icon">🧾</span>
+                <span class="button-text">Legacy Debt</span>
+                <span class="tooltiptext">Legacy debt ledger and approvals</span>
+            </button>
 
             <button class="tooltip" data-filter="settings" id="navSettings">
                 <span class="button-icon"><i data-lucide="settings" class="icon-sm"></i></span>

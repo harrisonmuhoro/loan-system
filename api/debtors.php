@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/legacy_deprecated_guard.php';
+rejectDeprecatedLegacyEndpoint('legacy-debt.php and api/legacy_import.php');
 /**
  * Debtors API Endpoint - Cross-Portal Version (FIXED COLLATION & MISSING COLUMN)
  * Location: api/debtors.php

@@ -114,6 +114,17 @@ try {
                     ]);
                 }
 
+                // Theme preferences are optional. Return the application default
+                // instead of making the first page load look like an API error.
+                if ($key === 'user_theme_preference') {
+                    sendResponse(true, 'Default setting returned', [
+                        'setting_key' => 'user_theme_preference',
+                        'value' => 'light',
+                        'updated_at' => null,
+                        'is_default' => true
+                    ]);
+                }
+
                 sendResponse(false, 'Setting not found', null, 404);
             }
 
@@ -216,44 +227,40 @@ $allowedKeys = [
             break;
     }
 
-        // Check if setting exists
-        $query = "SELECT id FROM system_settings WHERE setting_key = :key";
+        // Use one idempotent write so the first save and repeated saves are safe
+        // even when two page initializers run at the same time.
+        $query = "INSERT INTO system_settings
+                  (setting_key, value, created_at, updated_at, created_by, updated_by)
+                  VALUES (:key, :value, NOW(), NOW(), :created_by, :updated_by)
+                  ON DUPLICATE KEY UPDATE
+                    value = VALUES(value),
+                    updated_at = NOW(),
+                    updated_by = VALUES(updated_by)";
         $stmt = $db->prepare($query);
-        $stmt->bindParam(':key', $input['key'], PDO::PARAM_STR);
-        $stmt->execute();
+        $userId = (int) $_SESSION['user_id'];
+        $saved = $stmt->execute([
+            ':key' => $input['key'],
+            ':value' => $input['value'],
+            ':created_by' => $userId,
+            ':updated_by' => $userId
+        ]);
 
-        if ($stmt->rowCount() > 0) {
-            // Update existing setting
-            $query = "UPDATE system_settings 
-                      SET value = :value, 
-                          updated_at = NOW(), 
-                          updated_by = :updated_by 
-                      WHERE setting_key = :key";
-            $stmt = $db->prepare($query);
-            $stmt->bindParam(':key', $input['key'], PDO::PARAM_STR);
-            $stmt->bindParam(':value', $input['value'], PDO::PARAM_STR);
-            $stmt->bindParam(':updated_by', $_SESSION['user_id'], PDO::PARAM_INT);
-        } else {
-            // Create new setting
-            $query = "INSERT INTO system_settings 
-                      (setting_key, value, created_at, updated_at, created_by, updated_by) 
-                      VALUES (:key, :value, NOW(), NOW(), :created_by, :updated_by)";
-            $stmt = $db->prepare($query);
-            $stmt->bindParam(':key', $input['key'], PDO::PARAM_STR);
-            $stmt->bindParam(':value', $input['value'], PDO::PARAM_STR);
-            $stmt->bindParam(':created_by', $_SESSION['user_id'], PDO::PARAM_INT);
-            $stmt->bindParam(':updated_by', $_SESSION['user_id'], PDO::PARAM_INT);
-        }
-
-        if ($stmt->execute()) {
+        if ($saved) {
             // Log the action
-            $logQuery = "INSERT INTO activity_log (admin_id, action, details, timestamp) 
-                        VALUES (:admin_id, 'update_setting', :message, NOW())";
-            $logStmt = $db->prepare($logQuery);
-            $logMessage = "Updated setting: {$input['key']} to {$input['value']}";
-            $logStmt->bindParam(':admin_id', $_SESSION['user_id'], PDO::PARAM_INT); // <-- Fixed
-            $logStmt->bindParam(':message', $logMessage, PDO::PARAM_STR);
-            $logStmt->execute();
+            try {
+                $logQuery = "INSERT INTO activity_log (admin_id, action, details, timestamp)
+                            VALUES (:admin_id, 'update_setting', :message, NOW())";
+                $logStmt = $db->prepare($logQuery);
+                $logMessage = "Updated setting: {$input['key']} to {$input['value']}";
+                $logStmt->execute([
+                    ':admin_id' => $userId,
+                    ':message' => $logMessage
+                ]);
+            } catch (PDOException $logException) {
+                // A logging-table problem must not make a valid setting write
+                // appear to have failed. Keep the failure in the server log.
+                error_log('Settings API activity log error: ' . $logException->getMessage());
+            }
 
             sendResponse(true, 'Setting saved successfully', [
                 'setting_key' => $input['key'],

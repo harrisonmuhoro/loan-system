@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/legacy_deprecated_guard.php';
+rejectDeprecatedLegacyEndpoint('legacy-debt.php and api/legacy_migration.php');
 /**
  * Migration API - Convert pending outstanding_debtors to loan_applications
  * Location: /api/migrate_outstanding_to_loans.php

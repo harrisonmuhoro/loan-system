@@ -620,6 +620,9 @@ function handlePostRequest($db) {
         if (!$stmt->execute()) {
             throw new Exception('Failed to insert payment record');
         }
+        // Capture the payment id immediately; later SELECT/UPDATE statements
+        // may change the connection's last-insert-id value under MySQL/PDO.
+        $paymentId = $db->lastInsertId();
         // After successful payment insertion, check if this is the first payment
         $countQuery = "SELECT COUNT(*) as payment_count FROM payments WHERE application_id = :app_id";
         $countStmt = $db->prepare($countQuery);
@@ -637,8 +640,6 @@ function handlePostRequest($db) {
         }
 
 
-        
-        $paymentId = $db->lastInsertId();
         
         error_log("✓ Payment record created (ID: {$paymentId})");
         

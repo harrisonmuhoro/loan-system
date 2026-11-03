@@ -5821,6 +5821,11 @@ function hideAllSections() {
  * Show debtors section with proper visibility management
  */
 function showDebtorsSection() {
+    // The former importer bypassed the normalized ledger. Route it to the
+    // controlled Phase 3–6 workspace instead.
+    window.location.href = '../legacy-debt.php';
+    return;
+
     //console.log('Showing debtors section...');
 
     // Hide all other sections first

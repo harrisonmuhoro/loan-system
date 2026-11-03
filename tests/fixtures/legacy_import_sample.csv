@@ -1,0 +1,3 @@
+name,pf_number,national_id,phone,source_reference,outstanding_balance
+Test Debtor One,900001,ID900001,0700000001,LEGACY-SAMPLE-001,15000.00
+Test Debtor Two,900002,ID900002,0700000002,LEGACY-SAMPLE-002,25000.00

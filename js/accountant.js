@@ -3141,6 +3141,9 @@
     }
 
     async function showOutstandingDebtors() {
+        window.location.href = '../legacy-debt.php';
+        return;
+
         hideAllSections();
 
         try {
@@ -3368,6 +3371,9 @@
      * View converted debtors (those now in loan system)
      */
     async function viewConvertedDebtors() {
+        window.location.href = '../legacy-debt.php';
+        return;
+
         hideAllSections();
 
         try {

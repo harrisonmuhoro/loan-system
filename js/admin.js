@@ -5642,6 +5642,10 @@ window.getCsrfToken = getCsrfToken;
  * Displays all imported debtors grouped by financial year
  */
 async function showLegacyDebtorsView() {
+    // Retired direct legacy endpoint; use the controlled ledger workspace.
+    window.location.href = '../legacy-debt.php';
+    return;
+
     hideAllSections();
 
     try {

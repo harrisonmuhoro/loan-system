@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/legacy_deprecated_guard.php';
+rejectDeprecatedLegacyEndpoint('legacy-debt.php and api/legacy_import.php');
 /**
  * Import Debtors API Endpoint
  * Location: api/import-debtors.php

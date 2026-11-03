@@ -14,10 +14,10 @@ if (session_status() === PHP_SESSION_NONE) {
 define('ENVIRONMENT', $environment);
 
 // Database configuration
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'loan_management');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_HOST', getenv('LOAN_DB_HOST') ?: 'localhost');
+define('DB_NAME', getenv('LOAN_DB_NAME') ?: 'loan_management');
+define('DB_USER', getenv('LOAN_DB_USER') ?: 'root');
+define('DB_PASS', getenv('LOAN_DB_PASS') ?: '');
 
 // Application settings
 define('APP_NAME', 'loan-system');
