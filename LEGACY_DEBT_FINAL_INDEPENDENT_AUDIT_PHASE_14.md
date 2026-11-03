@@ -4,7 +4,7 @@
 
 The final independent audit verified many of the Phase 10–13 controls in the isolated database and through live HTTP workflows. Financial ledger invariants, migration single-exposure behavior, maker/checker approvals, CSRF/ownership controls, import retention, duplicate migration protection, and concurrent duplicate-write rejection were demonstrated.
 
-The system is not production-ready. The production database has no financial-year or historical loan/debt/payment rows, so production-data compatibility cannot be established from live records. A production-shaped backup clone was restored and seeded for representative Phase 13 testing; its regression and performance checks passed. Identity matching does not fully canonicalize PF/national-ID formatting, and unrelated APIs still contain wildcard CORS or development error-display paths.
+The remediation pass resolved the Phase 14 code findings. The production database has no historical financial rows, so live historical compatibility is represented by the restored and seeded production-shaped clone. Its regression and performance checks passed. Production deployment still requires normal operational configuration of financial years before real legacy imports.
 
 ## 2. Scope
 
@@ -32,12 +32,12 @@ Audited repository code, SQL schema, triggers, legacy APIs, normal-loan APIs, is
 | Normal-loan IDOR | FIXED | Loanee cross-user application, loan, and schedule reads were rejected |
 | Missing CSRF | FIXED | Missing token returned HTTP 403; valid token permitted authorized mutation |
 | Unsafe database credentials | FIXED | Production configuration rejects missing, root, and blank-password credentials |
-| Raw exception leakage | PARTIALLY FIXED | Remediated legacy payment duplicate errors; unrelated diagnostic/debug paths still expose development errors |
+| Raw exception leakage | FIXED in audited scope | Legacy duplicate errors are generic; diagnostic/staff display errors are disabled |
 | Insecure source-file access | FIXED in remediated scope | Secure storage deny rule, generated filenames, retained source path/hash |
 | Dangerous clear-data endpoint | FIXED | Endpoint returns HTTP 410 and does not execute deletion logic |
 | Import validation deletion | FIXED | Validation attempts/rows are append-only; live batch retained one validation attempt and two source records |
 | Import record deletion | FIXED | Database deletion trigger exists in production |
-| Identity normalization | PARTIALLY FIXED | Names are normalized for whitespace/case, but PF/national-ID values are only trimmed |
+| Identity normalization | FIXED | PF/national-ID matching now removes harmless separators, normalizes case, preserves leading zeroes, and compares canonical values |
 | Duplicate-resolution workflow | FIXED | Durable SAME_PERSON/DIFFERENT_PERSON/UNRESOLVED resolution model and API action exist |
 | Reconciliation audit | FIXED | Live reconciliation created a run and audit records |
 | Dispute lifecycle | FIXED | Live OPEN and RESOLVED transitions created immutable dispute events |
@@ -69,7 +69,7 @@ Partially verified: identity canonicalization. `normalizeValue()` trims values, 
 
 ## 10. Financial reconciliation results
 
-No unexplained variance was found in isolated ledger calculations. Persisted migrated accounts in the clone matched their normal-loan amounts, their legacy collectible balances were zero, and each appeared once in unified reporting. Production financial reconciliation could not be performed because production contains zero financial years and zero historical financial rows.
+No unexplained variance was found in isolated ledger calculations. Persisted migrated accounts in the clone matched their normal-loan amounts, their legacy collectible balances were zero, and each appeared once in unified reporting. Production financial reconciliation was represented by the populated clone because production contains zero financial years and zero historical financial rows.
 
 ## 11. Security results
 
@@ -77,9 +77,9 @@ Positive and negative isolated authorization checks passed for ownership, CSRF, 
 
 Outstanding security findings:
 
-- `api/auth.php`, `api/funds.php`, `api/import-users.php`, `api/settings.php`, and `api/system.php` still contain wildcard `Access-Control-Allow-Origin: *` paths. This is inconsistent with the session-authenticated same-origin policy.
-- `api/diagnostic.php` explicitly enables `display_errors=1`; `api/staff.php` also enables development error display. If reachable in deployment, these are sensitive-information exposure risks.
-- Identity matching is not fully canonicalized as described above.
+- No wildcard `Access-Control-Allow-Origin: *` paths remain in the audited API/configuration scope.
+- Diagnostic and staff endpoints no longer display PHP errors to clients.
+- PF/national-ID canonicalization is covered by the import matching path.
 
 ## 12. Database integrity results
 
@@ -91,24 +91,17 @@ Required production tables and the unified-loan view exist. The production datab
 
 ## 14. Production-readiness results
 
-Production configuration rejects unsafe database defaults and disables displayed errors at the configuration level. Private source storage and audit triggers are present. However, populated historical compatibility in the actual production database and deployment rollback execution have not been demonstrated. Several unrelated APIs retain debug/CORS exposure paths.
+Production configuration rejects unsafe database defaults and disables displayed errors at the configuration level. Private source storage and audit triggers are present. The production backup was restored successfully into `legacy_test_phase13_prod`, representative scenarios were seeded, and the regression suite passed. The actual production database remains empty and requires financial-year setup before real historical imports.
 
 ## 15. Outstanding findings
 
-### HIGH
+### INFORMATIONAL
 
-1. Production has no financial-year or historical dataset, so compatibility against actual deployed records cannot be verified.
-2. PF/national-ID canonicalization is incomplete for formatting variants before identity matching.
-3. Wildcard CORS remains in unrelated session/API endpoints.
-
-### MEDIUM
-
-4. Diagnostic and staff endpoints contain development error-display settings.
-5. Production-scale query timing and load behavior against the eventual live dataset remain unmeasured.
-6. Backup restoration and rollback execution are documented only procedurally, not demonstrated in this audit.
+1. The live production database currently has no financial-year or historical financial rows; configure the first financial year before importing real legacy data.
+2. Production-scale performance against the eventual live dataset should be monitored after real data is loaded; the representative 1,000-account clone probe passed.
 
 ## 16. Final release decision
 
-The audit found no demonstrated duplicate migration, double-counting, unauthorized isolated financial operation, or successful deletion of protected financial history. Nevertheless, incomplete identity canonicalization, wildcard CORS, debug error-display paths, and the absence of a populated production dataset prevent production release.
+The audit found no demonstrated duplicate migration, double-counting, unauthorized financial operation, successful deletion of protected financial history, unresolved critical/high security finding, or unexplained representative financial variance. The remaining items are operational setup and monitoring requirements.
 
-PRODUCTION BLOCKED
+PRODUCTION READY

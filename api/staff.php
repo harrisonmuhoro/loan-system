@@ -1,7 +1,8 @@
 <?php
 // Add this at the very top of all API files
-error_reporting(E_ALL); // Enable error reporting for debugging
-ini_set('display_errors', 1); // Display errors for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
 
 // Start output buffering to catch any accidental output
 ob_start();

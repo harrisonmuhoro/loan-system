@@ -248,6 +248,18 @@ function normalizeValue(?string $value): ?string
     return $value === '' ? null : $value;
 }
 
+function normalizeIdentity(?string $value): ?string
+{
+    $value = normalizeValue($value);
+    if ($value === null) {
+        return null;
+    }
+
+    // Preserve leading zeroes while making harmless separators/case irrelevant.
+    $value = strtoupper(preg_replace('/[^A-Z0-9]/i', '', $value) ?? '');
+    return $value === '' ? null : $value;
+}
+
 function normalizeName(?string $value): ?string
 {
     $value = normalizeValue($value);
@@ -439,9 +451,14 @@ function validateFinancialYear(PDO $db, int $yearId): array
 
 function findIdentity(PDO $db, ?string $pf, ?string $nationalId): ?array
 {
+    $pf = normalizeIdentity($pf);
+    $nationalId = normalizeIdentity($nationalId);
     if ($pf !== null && $nationalId !== null) {
         $stmt = $db->prepare(
-            'SELECT * FROM legacy_debtors WHERE pf_number = ? AND national_id = ? LIMIT 1'
+            "SELECT * FROM legacy_debtors
+              WHERE REGEXP_REPLACE(UPPER(COALESCE(pf_number,'')), '[^A-Z0-9]', '') = ?
+                AND REGEXP_REPLACE(UPPER(COALESCE(national_id,'')), '[^A-Z0-9]', '') = ?
+              LIMIT 1"
         );
         $stmt->execute([$pf, $nationalId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -451,7 +468,11 @@ function findIdentity(PDO $db, ?string $pf, ?string $nationalId): ?array
     }
 
     if ($pf !== null) {
-        $stmt = $db->prepare('SELECT * FROM legacy_debtors WHERE pf_number = ? LIMIT 1');
+        $stmt = $db->prepare(
+            "SELECT * FROM legacy_debtors
+              WHERE REGEXP_REPLACE(UPPER(COALESCE(pf_number,'')), '[^A-Z0-9]', '') = ?
+              LIMIT 1"
+        );
         $stmt->execute([$pf]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($row) {
@@ -460,7 +481,11 @@ function findIdentity(PDO $db, ?string $pf, ?string $nationalId): ?array
     }
 
     if ($nationalId !== null) {
-        $stmt = $db->prepare('SELECT * FROM legacy_debtors WHERE national_id = ? LIMIT 1');
+        $stmt = $db->prepare(
+            "SELECT * FROM legacy_debtors
+              WHERE REGEXP_REPLACE(UPPER(COALESCE(national_id,'')), '[^A-Z0-9]', '') = ?
+              LIMIT 1"
+        );
         $stmt->execute([$nationalId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($row) {
@@ -493,8 +518,8 @@ function identityValidation(PDO $db, array $row): array
 {
     $errors = [];
     $name = normalizeName($row['name'] ?? null);
-    $pf = normalizeValue($row['pf_number'] ?? null);
-    $nationalId = normalizeValue($row['national_id'] ?? null);
+    $pf = normalizeIdentity($row['pf_number'] ?? null);
+    $nationalId = normalizeIdentity($row['national_id'] ?? null);
     $amount = $row['amount'] ?? null;
 
     if ($name === null || mb_strlen($name) < 3) {
@@ -516,8 +541,8 @@ function identityValidation(PDO $db, array $row): array
 
     if ($existing && $state === 'VALID') {
         $exact = $pf !== null && $nationalId !== null
-            && $existing['pf_number'] === $pf
-            && $existing['national_id'] === $nationalId;
+            && normalizeIdentity($existing['pf_number'] ?? null) === $pf
+            && normalizeIdentity($existing['national_id'] ?? null) === $nationalId;
         $sourceReference = normalizeValue($row['source_reference'] ?? null);
         $component = componentExists($db, $sourceReference);
 
@@ -1016,8 +1041,8 @@ function handleMigrateExisting(PDO $db, int $actor): void
 
             $record = [
                 'normalized_name' => normalizeName($source['name']),
-                'normalized_pf_number' => normalizeValue($source['pf_number']),
-                'normalized_national_id' => normalizeValue($source['id_number']),
+                'normalized_pf_number' => normalizeIdentity($source['pf_number']),
+                'normalized_national_id' => normalizeIdentity($source['id_number']),
                 'source_reference' => $sourceRef,
                 'amount' => parseAmount($source['amount']),
                 'source_row_number' => (int)$source['debtor_id']
