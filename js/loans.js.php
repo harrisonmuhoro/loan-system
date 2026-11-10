@@ -25,7 +25,6 @@ try {
 const response = await fetch(this.baseUrl, {
 method: 'GET',
 headers: {
-'Content-Type': 'application/json',
 'X-API-Key': this.apiKey
 },
 credentials: 'include'
@@ -56,11 +55,14 @@ try {
 const response = await fetch(`${this.baseUrl}?id=${applicationId}`, {
 method: 'GET',
 headers: {
-'Content-Type': 'application/json',
 'X-API-Key': this.apiKey
 },
 credentials: 'include'
 });
+
+if (!response.ok) {
+throw new Error(`HTTP ${response.status}`);
+}
 
 const data = await response.json();
 return data;
@@ -142,8 +144,8 @@ return { success: false, message: error.message };
 }
 }
 
-// Usage example
-const loanAPI = new LoanAPI('your-api-key-here');
+// Usage example — API key injected securely from PHP session
+const loanAPI = new LoanAPI('<?= htmlspecialchars($_SESSION['api_key'] ?? '') ?>');
 
 // Fetch current user's loans
 async function displayMyLoans() {
@@ -164,4 +166,13 @@ console.log(`Total approved amount: ${stats.total_approved_amount}`);
 // Display loans in your UI
 displayLoansInTable(loans);
 }
+}
+
+/**
+ * TODO: Implement this function to render loans in your table/UI.
+ * @param {Array} loans - Array of loan objects from the API
+ */
+function displayLoansInTable(loans) {
+// Example: loans.forEach(loan => { ... });
+console.warn('displayLoansInTable() is not yet implemented.', loans);
 }
